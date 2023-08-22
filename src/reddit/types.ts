@@ -11,6 +11,13 @@ export interface RedditListingResponse {
                 post_hint: string; // 'image' | 'hosted:video'
                 url: string;
                 selftext: string; // description of the post
+                media?: {
+                    reddit_video?: {
+                        fallback_url: string;
+                        height: number;
+                        width: number;
+                    };
+                };
                 preview?: {
                     images?: {
                         source?: { url: string, width: number, height: number };

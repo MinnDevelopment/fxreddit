@@ -4,7 +4,14 @@ export function parseRedditPost(record: RedditListingResponse): RedditPost {
     const metadata = record.data.children[0].data;
     let resolution = undefined;
 
-    if (metadata?.preview?.images?.length) {
+    let post_hint = metadata.post_hint;
+    let video_url = metadata.secure_media?.reddit_video?.fallback_url;
+
+    if (metadata?.media?.reddit_video) {
+        resolution = { width: metadata.media.reddit_video.width, height: metadata.media.reddit_video.height };
+        video_url = metadata.media.reddit_video.fallback_url;
+        post_hint = 'hosted:video';
+    } else if (metadata?.preview?.images?.length) {
         if (metadata.preview.images[0].source) {
             resolution = metadata.preview.images[0].source;
         } else {
@@ -12,18 +19,18 @@ export function parseRedditPost(record: RedditListingResponse): RedditPost {
             resolution = resolutions?.[resolutions?.length - 1];
         }
     }
-    
-    console.log(JSON.stringify(metadata, null, 2));
+
+    // console.log(JSON.stringify(metadata, null, 2));
     return {
         kind: record.kind,
         subreddit: metadata.subreddit,
         title: metadata.title,
-        post_hint: metadata.post_hint,
+        post_hint: post_hint,
         url: metadata.url,
         permalink: metadata.permalink,
         description: metadata.selftext,
         resolution: resolution ? { width: resolution.width, height: resolution.height } : undefined,
-        video_url: metadata.secure_media?.reddit_video?.fallback_url,
+        video_url: video_url,
     };
 }
 
