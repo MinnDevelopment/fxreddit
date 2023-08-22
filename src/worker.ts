@@ -34,8 +34,10 @@ function redirectBrowser(req: IRequest, force: boolean = false) {
     location.protocol = 'https:';
     location.port = '';
 
-    return HtmlResponse(`<head><meta http-equiv="Refresh" content="0; URL=${location.toString().replaceAll('"', '\\"')}" /></head>`, {
-        headers: { Location: location.toString() }, status: 302
+    const url = location.toString();
+
+    return HtmlResponse(`<head><meta http-equiv="Refresh" content="0; URL=${url.replaceAll('"', '\\"')}" /></head>`, {
+        headers: { Location: url }, status: 302
     });
 }
 

@@ -29,23 +29,25 @@ export function parseRedditPost(record: RedditListingResponse): RedditPost {
         url: metadata.url,
         permalink: metadata.permalink,
         description: metadata.selftext,
+        is_reddit_media: metadata.is_reddit_media_domain,
+        preview_image_url: metadata.preview?.images?.[0].source?.url,
         resolution: resolution ? { width: resolution.width, height: resolution.height } : undefined,
         video_url: video_url,
+        oembed: metadata.media?.oembed
     };
 }
 
 export function postToHtml(post: RedditPost): string {
     let html = '<!DOCTYPE html><html><head>';
 
-    html += `<meta property="og:title" content="${post.title.replaceAll('"', '\\"')}" />`;
+    html += `<meta property="og:title" content="r/${post.subreddit}: ${post.title.replaceAll('"', '\\"')}" />`;
     html += `<meta property="twitter:title" content="${post.title.replaceAll('"', '\\"')}" />`;
     html += `<meta property="og:url" content="https://www.reddit.com${post.permalink}" />`;
 
     if (post.description) {
-        html += `<meta property="og:description" content="${post.description.replaceAll('"', '\\"')}" />`;
+        const description = post.description.replaceAll('"', '\\"');
+        html += `<meta property="og:description" content="${description}" />`;
     }
-
-    console.log(JSON.stringify(post, null, 2));
 
     switch (post.post_hint) {
     case 'image':
@@ -76,6 +78,12 @@ export function postToHtml(post: RedditPost): string {
         break;
     default:
         html += '<meta property="og:type" content="object">';
+        if (post.oembed) {
+            html += `<meta property="og:image" content="${post.oembed.thumbnail_url}" />`;
+            html += `<meta property="og:description" content="${post.oembed.title}" />`;
+        } else if (post.preview_image_url) {
+            html += `<meta property="og:image" content="${post.preview_image_url}" />`;
+        }
         break;
     }
 
