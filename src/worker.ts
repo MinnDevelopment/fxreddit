@@ -1,5 +1,6 @@
 import { Router } from 'itty-router';
-import { RedditListingResponse, RedditPost, parseRedditPost } from './reddit';
+import { parseRedditPost, postToHtml } from './reddit/reddit';
+import { RedditListingResponse, RedditPost } from './reddit/types';
 
 const app = Router();
 const REDDIT_BASE_URL = 'https://www.reddit.com';
@@ -14,26 +15,6 @@ async function get_post(subreddit: string, id: string, slug: string): Promise<Re
         .then(([json]) => parseRedditPost(json as RedditListingResponse));
 }
 
-function as_embed(post: RedditPost, { name, id, slug }: { name: string, id: string, slug: string }): Response {
-    return new Response(`<!DOCTYPE html>
-            <html>
-            <head>
-                <meta property="og:title" content="${post.title}">
-                <meta property="og:url" content="${REDDIT_BASE_URL}/r/${name}/comments/${id}/${slug}">
-                <meta property="og:image" content="${post.url}">
-                ${post.resolution ? `
-                <meta property="og:image:width" content="${post.resolution?.width}">
-                <meta property="og:image:height" content="${post.resolution?.height}">` : ''}
-                
-                <meta property="og:type" content="object">
-                
-                <meta name="twitter:title" content="${post.title}">
-                <meta name="twitter:image:src" content="${post.url}">
-                <meta name="twitter:card" content="summary_large_image">
-            </head>
-            </html>`, { headers: { 'Content-Type': 'text/html' } });
-}
-
 app.get('/', () => {
     console.log('Hello world!');
     return new Response('Hello world!');
@@ -44,7 +25,9 @@ app.get('/r/:name/comments/:id/:slug', async (req) => {
     const id = req.params.id;
     const slug = req.params.slug;
 
-    return as_embed(await get_post(name, id, slug), req.params);
+    const post = await get_post(name, id, slug);
+    const html = postToHtml(post);
+    return new Response(html, { headers: { 'Content-Type': 'text/html' } });
 });
 
 app.all('*', () => new Response('Not found', { status: 404 }));

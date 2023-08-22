@@ -4,15 +4,24 @@ export interface RedditListingResponse {
         children: {
             kind: string; // 't3'
             data: {
+                id: string;
                 subreddit: string;
+                permalink: string;
                 title: string;
-                post_hint: string; // 'image'
+                post_hint: string; // 'image' | 'hosted:video'
                 url: string;
+                selftext: string; // description of the post
                 preview?: {
                     images?: {
+                        source?: { url: string, width: number, height: number };
                         resolutions: { url: string, width: number, height: number }[];
                     }[]
-                }
+                };
+                secure_media?: {
+                    reddit_video?: {
+                        fallback_url: string;
+                    };
+                };
             }
         }[];
     };
@@ -23,22 +32,11 @@ export interface RedditPost {
     title: string;
     post_hint: string; // 'image'
     url: string;
+    permalink: string;
+    description: string;
     resolution?: {
         width: number;
         height: number;
     };
-}
-
-export function parseRedditPost(record: RedditListingResponse): RedditPost {
-    const metadata = record.data.children[0].data;
-    const resolutions = metadata.post_hint === 'image' ? metadata.preview?.images?.[0].resolutions : undefined;
-    const resolution = resolutions?.[resolutions?.length - 1];
-    return {
-        kind: record.kind,
-        subreddit: metadata.subreddit,
-        title: metadata.title,
-        post_hint: metadata.post_hint,
-        url: metadata.url,
-        resolution: resolution ? { width: resolution.width, height: resolution.height } : undefined
-    };
+    video_url?: string;
 }
