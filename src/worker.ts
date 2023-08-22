@@ -43,7 +43,7 @@ const router = Router();
 
 router
     // Redirect all browser usage
-    .all('*', redirectBrowser)
+    .all('*', (req) => redirectBrowser(req))
     // Otherwise, if its a bot we respond with a meta tag page
     .get('/r/:name/comments/:id/:slug', async ({ params }) => {
         const name = params.name;
