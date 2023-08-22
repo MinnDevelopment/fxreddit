@@ -1,8 +1,7 @@
-import { IRequest, Router } from 'itty-router';
+import { IRequest, Router, html as HtmlResponse } from 'itty-router';
 import { parseRedditPost, postToHtml } from './reddit/reddit';
 import { RedditListingResponse, RedditPost } from './reddit/types';
 
-const app = Router();
 const REDDIT_BASE_URL = 'https://www.reddit.com';
 
 const HEADERS = {
@@ -11,35 +10,53 @@ const HEADERS = {
 
 async function get_post(subreddit: string, id: string, slug: string): Promise<RedditPost> {
     return await fetch(`${REDDIT_BASE_URL}/r/${subreddit}/comments/${id}/${slug}.json`, { headers: HEADERS })
-        .then((r) => r.json())
-        .then(([json]) => parseRedditPost(json as RedditListingResponse));
+        .then((r) => r.json<RedditListingResponse[]>())
+        .then(([json]) => parseRedditPost(json));
 }
 
-function isBot(request: IRequest): boolean {
-    return request.headers.get('User-Agent')?.toLowerCase()?.includes('bot') ?? false;
+function isBot({ headers }: IRequest): boolean {
+    return headers.get('User-Agent')?.toLowerCase()?.includes('bot') ?? false;
 }
 
-app.get('/r/:name/comments/:id/:slug', async (req) => {
-    const name = req.params.name;
-    const id = req.params.id;
-    const slug = req.params.slug;
+function redirectBrowser(req: IRequest, force: boolean = false) {
+    if (!force && isBot(req)) {
+        return;
+    }
 
-    if (isBot(req)) {
+    const location = new URL(req.url);
+
+    if (location.hostname.endsWith('rxddit.com')) {
+        location.hostname = location.hostname.replace('rxddit.com', 'reddit.com');
+    } else {
+        location.hostname = 'reddit.com';
+    }
+
+    location.protocol = 'https:';
+    location.port = '';
+
+    return HtmlResponse(`<head><meta http-equiv="Refresh" content="0; URL=${location.toString().replaceAll('"', '\\"')}" /></head>`, {
+        headers: { Location: location.toString() }, status: 302
+    });
+}
+
+const router = Router();
+
+router
+    // Redirect all browser usage
+    .all('*', redirectBrowser)
+    // Otherwise, if its a bot we respond with a meta tag page
+    .get('/r/:name/comments/:id/:slug', async ({ params }) => {
+        const name = params.name;
+        const id = params.id;
+        const slug = params.slug;
+
         const post = await get_post(name, id, slug);
         const html = postToHtml(post);
-        return new Response(html, { headers: { 'Content-Type': 'text/html' } });
-    } else {
-        return new Response('', { headers: { Location: `${REDDIT_BASE_URL}/r/${name}/comments/${id}/${slug}` }, status: 302 });
-    }
-});
-
-app.all('*', (req) => {
-    // Redirect to original reddit link with given path
-    // Extract path from url
-    const path = req.url.substring(req.url.substring('https://'.length).indexOf('/') + 'https://'.length);
-    return new Response('', { headers: { Location: `https://www.reddit.com/${path}` }, status: 302 });
-});
+        return HtmlResponse(html);
+    })
+    // On missing routes we simply redirect
+    .all('*', (req) => redirectBrowser(req, true));
 
 addEventListener('fetch', (event) => {
-    event.respondWith(app.handle(event.request));
+    event.respondWith(router.handle(event.request).catch(console.error));
 });
