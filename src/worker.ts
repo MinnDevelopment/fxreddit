@@ -1,4 +1,4 @@
-import { Router } from 'itty-router';
+import { IRequest, Router } from 'itty-router';
 import { parseRedditPost, postToHtml } from './reddit/reddit';
 import { RedditListingResponse, RedditPost } from './reddit/types';
 
@@ -15,22 +15,30 @@ async function get_post(subreddit: string, id: string, slug: string): Promise<Re
         .then(([json]) => parseRedditPost(json as RedditListingResponse));
 }
 
-app.get('/', () => {
-    console.log('Hello world!');
-    return new Response('Hello world!');
-});
+function isBot(request: IRequest): boolean {
+    return request.headers.get('User-Agent')?.toLowerCase()?.includes('bot') ?? false;
+}
 
 app.get('/r/:name/comments/:id/:slug', async (req) => {
     const name = req.params.name;
     const id = req.params.id;
     const slug = req.params.slug;
 
-    const post = await get_post(name, id, slug);
-    const html = postToHtml(post);
-    return new Response(html, { headers: { 'Content-Type': 'text/html' } });
+    if (isBot(req)) {
+        const post = await get_post(name, id, slug);
+        const html = postToHtml(post);
+        return new Response(html, { headers: { 'Content-Type': 'text/html' } });
+    } else {
+        return new Response('', { headers: { Location: `${REDDIT_BASE_URL}/r/${name}/comments/${id}/${slug}` }, status: 302 });
+    }
 });
 
-app.all('*', () => new Response('Not found', { status: 404 }));
+app.all('*', (req) => {
+    // Redirect to original reddit link with given path
+    // Extract path from url
+    const path = req.url.substring(req.url.substring('https://'.length).indexOf('/') + 'https://'.length);
+    return new Response('', { headers: { Location: `https://www.reddit.com/${path}` }, status: 302 });
+});
 
 addEventListener('fetch', (event) => {
     event.respondWith(app.handle(event.request));
