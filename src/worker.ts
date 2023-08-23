@@ -65,13 +65,20 @@ router
     // Redirect all browser usage
     .all('*', (req) => redirectBrowser(req))
     // Otherwise, if its a bot we respond with a meta tag page
-    .get('/r/:name/comments/:id/:slug', async ({ params }) => {
+    .get('/r/:name/comments/:id/:slug', async ({ params, url }) => {
         const name = params.name;
         const id = params.id;
         const slug = params.slug;
 
         const post = await get_post(name, id, slug);
         const html = postToHtml(post);
+        const headers: HeadersInit = { ...RESPONSE_HEADERS };
+        
+        const { protocol } = new URL(url);
+        if (protocol === 'https:') {
+            headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload';
+        }
+        
         return new Response(html, {
             headers: RESPONSE_HEADERS
         });
