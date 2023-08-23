@@ -1,5 +1,5 @@
 import { HTMLElement } from 'node-html-parser';
-import { RedditListingResponse, RedditPost } from './types';
+import { Image, RedditListingResponse, RedditPost } from './types';
 
 export function parseRedditPost(record: RedditListingResponse): RedditPost {
     const metadata = record.data.children[0].data;
@@ -21,6 +21,18 @@ export function parseRedditPost(record: RedditListingResponse): RedditPost {
         }
     }
 
+    const media_metadata: Image[] = [];
+    if (metadata.media_metadata && metadata.gallery_data?.items) {
+        for (const { media_id } of metadata.gallery_data.items) {
+            const value = metadata.media_metadata[media_id];
+            media_metadata.push({
+                width: value.s.x,
+                height: value.s.y,
+                url: value.s.u,
+            });
+        }
+    }
+
     return {
         kind: record.kind,
         subreddit: metadata.subreddit,
@@ -33,7 +45,8 @@ export function parseRedditPost(record: RedditListingResponse): RedditPost {
         preview_image_url: metadata.preview?.images?.[0].source?.url,
         resolution: resolution ? { width: resolution.width, height: resolution.height } : undefined,
         video_url: video_url,
-        oembed: metadata.media?.oembed
+        oembed: metadata.media?.oembed,
+        media_metadata,
     };
 }
 
@@ -43,7 +56,7 @@ declare module 'node-html-parser' {
     }
 }
 
-HTMLElement.prototype.meta = function(propertyName: string, content: string | undefined): HTMLElement {
+HTMLElement.prototype.meta = function (propertyName: string, content: string | undefined): HTMLElement {
     const node = this.appendChild(new HTMLElement('meta', {}));
     node.setAttribute('property', propertyName);
     node.setAttribute('content', content ?? '');
@@ -97,6 +110,14 @@ export function postToHtml(post: RedditPost): string {
                 head.meta('og:description', post.oembed.title);
             } else if (post.preview_image_url) {
                 head.meta('og:image', post.preview_image_url);
+            } else if (post.media_metadata) {
+                head.meta('twitter:card', 'summary_large_image');
+                for (const image of post.media_metadata) {
+                    head.meta('og:image', image.url);
+                    head.meta('twitter:image:src', image.url);
+                    head.meta('og:image:width', image.width.toString());
+                    head.meta('og:image:height', image.height.toString());
+                }
             }
             break;
     }

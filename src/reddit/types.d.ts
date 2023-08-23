@@ -38,6 +38,14 @@ export interface RedditListingResponse {
                         fallback_url: string;
                     };
                 };
+                media_metadata?: Record<string, {
+                    s: {
+                        y: number; // height
+                        x: number; // width
+                        u: string;
+                    };
+                }>;
+                gallery_data?: { items: { media_id: string }[] };
             }
         }[];
     };
@@ -63,4 +71,11 @@ export interface RedditPost {
         height: number;
         title: string;
     };
+    media_metadata?: Image[];
+}
+
+export interface Image {
+    url: string;
+    width: number;
+    height: number;
 }
