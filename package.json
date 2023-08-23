@@ -12,16 +12,16 @@
   "author": "MinnDevelopment",
   "license": "Apache-2.0",
   "dependencies": {
+    "@borderless/worker-sentry": "^2.0.0",
     "node-html-parser": "^6.1.6"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20230814.0",
-    "@types/express": "^4.17.17",
+    "@sentry/types": "^7.64.0",
     "@typescript-eslint/eslint-plugin": "^6.4.0",
     "@typescript-eslint/parser": "^6.4.0",
     "eslint": "^8.47.0",
+    "itty-router": "^4.0.22",
     "typescript": "^5.1.6",
-    "wrangler": "^3.5.1",
-    "itty-router": "^4.0.22"
+    "wrangler": "^3.5.1"
   }
 }
