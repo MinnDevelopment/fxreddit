@@ -57,6 +57,7 @@ export function postToHtml(post: RedditPost): string {
     head.meta('og:title', `r/${post.subreddit}: ${post.title}`);
     head.meta('twitter:title', post.title);
     head.meta('og:url', `https://www.reddit.com${post.permalink}`);
+    head.meta('og:site_name', 'rxddit.com');
 
     if (post.description) {
         head.meta('og:description', post.description);
