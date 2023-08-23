@@ -80,7 +80,7 @@ router
         }
         
         return new Response(html, {
-            headers: RESPONSE_HEADERS
+            headers
         });
     })
     // On missing routes we simply redirect
