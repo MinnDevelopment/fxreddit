@@ -8,8 +8,19 @@ const HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/116.0'
 };
 
+const CACHE = {
+    cf: {
+        cacheEverything: true,
+        cacheTtlByStatus: {
+            '200-299': 86400,
+            '404': 1,
+            '500-599': 0
+        } // Cache for 1 day
+    }
+};
+
 async function get_post(subreddit: string, id: string, slug: string): Promise<RedditPost> {
-    return await fetch(`${REDDIT_BASE_URL}/r/${subreddit}/comments/${id}/${slug}.json`, { headers: HEADERS })
+    return await fetch(`${REDDIT_BASE_URL}/r/${subreddit}/comments/${id}/${slug}.json`, { headers: HEADERS, ...CACHE })
         .then((r) => r.json<RedditListingResponse[]>())
         .then(([json]) => parseRedditPost(json));
 }
