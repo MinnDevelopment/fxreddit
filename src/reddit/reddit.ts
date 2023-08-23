@@ -1,3 +1,4 @@
+import { HTMLElement } from 'node-html-parser';
 import { RedditListingResponse, RedditPost } from './types';
 
 export function parseRedditPost(record: RedditListingResponse): RedditPost {
@@ -20,7 +21,6 @@ export function parseRedditPost(record: RedditListingResponse): RedditPost {
         }
     }
 
-    // console.log(JSON.stringify(metadata, null, 2));
     return {
         kind: record.kind,
         subreddit: metadata.subreddit,
@@ -37,57 +37,68 @@ export function parseRedditPost(record: RedditListingResponse): RedditPost {
     };
 }
 
-export function postToHtml(post: RedditPost): string {
-    let html = '<!DOCTYPE html><html><head>';
+declare module 'node-html-parser' {
+    interface HTMLElement {
+        meta(propertyName: string, content: string | undefined): HTMLElement;
+    }
+}
 
-    html += `<meta property="og:title" content="r/${post.subreddit}: ${post.title.replaceAll('"', '\\"')}" />`;
-    html += `<meta property="twitter:title" content="${post.title.replaceAll('"', '\\"')}" />`;
-    html += `<meta property="og:url" content="https://www.reddit.com${post.permalink}" />`;
+HTMLElement.prototype.meta = function(propertyName: string, content: string | undefined): HTMLElement {
+    const node = this.appendChild(new HTMLElement('meta', {}));
+    node.setAttribute('property', propertyName);
+    node.setAttribute('content', content ?? '');
+    return node;
+};
+
+export function postToHtml(post: RedditPost): string {
+    const html = new HTMLElement('html', {});
+    const head = html.appendChild(new HTMLElement('head', {}));
+
+    head.meta('og:title', `r/${post.subreddit}: ${post.title}`);
+    head.meta('twitter:title', post.title);
+    head.meta('og:url', `https://www.reddit.com${post.permalink}`);
 
     if (post.description) {
-        const description = post.description.replaceAll('"', '\\"');
-        html += `<meta property="og:description" content="${description}" />`;
+        head.meta('og:description', post.description);
     }
 
     switch (post.post_hint) {
-    case 'image':
-        html += '<meta property="og:type" content="object">';
-        html += `<meta property="og:image" content="${post.url}" />`;
-        html += `<meta name="twitter:image:src" content="${post.url}" />`;
-        html += '<meta name="twitter:card" content="summary_large_image" />';
-        if (post.resolution) {
-            html += `<meta property="og:image:width" content="${post.resolution.width}" />`;
-            html += `<meta property="og:image:height" content="${post.resolution.height}" />`;
-        }
-        break;
-    case 'hosted:video':
-        html += `<meta property="og:video" content="${post.video_url}" />`;
-        html += '<meta property="og:type" content="video.other" />';
-        html += '<meta property="og:video:type" content="video/mp4" />';
-        if (post.video_url) {
-            html += `<meta property="og:video:url" content="${post.video_url}" />`;
-            html += `<meta property="og:video:secure_url" content="${post.video_url}" />`;
-            html += `<meta property="twitter:player" content="${post.video_url}" />`;
-        }
-        if (post.resolution) {
-            html += `<meta property="og:video:width" content="${post.resolution.width}" />`;
-            html += `<meta property="og:video:height" content="${post.resolution.height}" />`;
-            html += `<meta property="twitter:player:width" content="${post.resolution.width}" />`;
-            html += `<meta property="twitter:player:height" content="${post.resolution.height}" />`;
-        }
-        break;
-    default:
-        html += '<meta property="og:type" content="object">';
-        if (post.oembed) {
-            html += `<meta property="og:image" content="${post.oembed.thumbnail_url}" />`;
-            html += `<meta property="og:description" content="${post.oembed.title}" />`;
-        } else if (post.preview_image_url) {
-            html += `<meta property="og:image" content="${post.preview_image_url}" />`;
-        }
-        break;
+        case 'image':
+            head.meta('og:type', 'object');
+            head.meta('og:image', post.url);
+            head.meta('twitter:image:src', post.url);
+            head.meta('twitter:card', 'summary_large_image');
+            if (post.resolution) {
+                head.meta('og:image:width', post.resolution.width.toString());
+                head.meta('og:image:height', post.resolution.height.toString());
+            }
+            break;
+        case 'hosted:video':
+            head.meta('og:video', post.video_url);
+            head.meta('og:type', 'video.other');
+            head.meta('og:video:type', 'video/mp4');
+            if (post.video_url) {
+                head.meta('og:video:url', post.video_url);
+                head.meta('og:video:secure_url', post.video_url);
+                head.meta('twitter:player', post.video_url);
+            }
+            if (post.resolution) {
+                head.meta('og:video:width', post.resolution.width.toString());
+                head.meta('og:video:height', post.resolution.height.toString());
+                head.meta('twitter:player:width', post.resolution.width.toString());
+                head.meta('twitter:player:height', post.resolution.height.toString());
+            }
+            break;
+        default:
+            head.meta('og:type', 'object');
+            if (post.oembed) {
+                head.meta('og:image', post.oembed.thumbnail_url);
+                head.meta('og:description', post.oembed.title);
+            } else if (post.preview_image_url) {
+                head.meta('og:image', post.preview_image_url);
+            }
+            break;
     }
 
-    html += '</head></html>';
-
-    return html;
+    return '<!DOCTYPE html>' + html.toString();
 }

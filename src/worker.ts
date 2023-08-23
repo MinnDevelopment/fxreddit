@@ -6,8 +6,13 @@ const REDDIT_BASE_URL = 'https://www.reddit.com';
 const CUSTOM_DOMAIN = 'rxddit.com';
 // const WORKER_DOMAIN = 'vxreddit.minn.workers.dev';
 
-const HEADERS = {
+const FETCH_HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/116.0'
+};
+
+const RESPONSE_HEADERS = {
+    'Content-Type': 'text/html; charset=UTF-8',
+    'Cache-Control': 'public, max-age=86400'
 };
 
 const CACHE = {
@@ -22,7 +27,7 @@ const CACHE = {
 };
 
 async function get_post(subreddit: string, id: string, slug: string): Promise<RedditPost> {
-    return await fetch(`${REDDIT_BASE_URL}/r/${subreddit}/comments/${id}/${slug}.json`, { headers: HEADERS, ...CACHE })
+    return await fetch(`${REDDIT_BASE_URL}/r/${subreddit}/comments/${id}/${slug}.json`, { headers: FETCH_HEADERS, ...CACHE })
         .then((r) => r.json<RedditListingResponse[]>())
         .then(([json]) => parseRedditPost(json));
 }
@@ -67,7 +72,9 @@ router
 
         const post = await get_post(name, id, slug);
         const html = postToHtml(post);
-        return HtmlResponse(html);
+        return new Response(html, {
+            headers: RESPONSE_HEADERS
+        });
     })
     // On missing routes we simply redirect
     .all('*', (req) => redirectBrowser(req, true));
