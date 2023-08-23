@@ -71,9 +71,11 @@ export function postToHtml(post: RedditPost): string {
     head.meta('twitter:title', post.title);
     head.meta('og:url', `https://www.reddit.com${post.permalink}`);
     head.meta('og:site_name', 'rxddit.com');
+    head.meta('twitter:site', 'rxddit.com');
 
     if (post.description) {
         head.meta('og:description', post.description);
+        head.meta('twitter:description', post.description);
     }
 
     switch (post.post_hint) {
@@ -112,9 +114,13 @@ export function postToHtml(post: RedditPost): string {
                 head.meta('og:image', post.preview_image_url);
             } else if (post.media_metadata) {
                 head.meta('twitter:card', 'summary_large_image');
+                head.meta('twitter:image:alt', `Image 1 of ${post.media_metadata.length}`);
+                head.meta('og:image:alt', `Image 1 of ${post.media_metadata.length}`);
+                head.meta('og:description', `🖼️ Gallery: ${post.media_metadata.length} Images`);
+                head.meta('twitter:description', `🖼️ Gallery: ${post.media_metadata.length} Images`);
                 for (const image of post.media_metadata) {
-                    head.meta('og:image', image.url);
                     head.meta('twitter:image:src', image.url);
+                    head.meta('og:image', image.url);
                     head.meta('og:image:width', image.width.toString());
                     head.meta('og:image:height', image.height.toString());
                 }
