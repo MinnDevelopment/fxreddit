@@ -3,6 +3,8 @@ import { parseRedditPost, postToHtml } from './reddit/reddit';
 import { RedditListingResponse, RedditPost } from './reddit/types';
 
 const REDDIT_BASE_URL = 'https://www.reddit.com';
+const CUSTOM_DOMAIN = 'rxddit.com';
+// const WORKER_DOMAIN = 'vxreddit.minn.workers.dev';
 
 const HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/116.0'
@@ -36,8 +38,8 @@ function redirectBrowser(req: IRequest, force: boolean = false) {
 
     const location = new URL(req.url);
 
-    if (location.hostname.endsWith('rxddit.com')) {
-        location.hostname = location.hostname.replace('rxddit.com', 'reddit.com');
+    if (location.hostname.endsWith(CUSTOM_DOMAIN)) {
+        location.hostname = location.hostname.replace(CUSTOM_DOMAIN, 'reddit.com');
     } else {
         location.hostname = 'reddit.com';
     }
