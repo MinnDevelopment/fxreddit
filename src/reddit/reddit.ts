@@ -46,6 +46,7 @@ export function parseRedditPost(record: RedditListingResponse): RedditPost {
         resolution: resolution ? { width: resolution.width, height: resolution.height } : undefined,
         video_url: video_url,
         oembed: metadata.media?.oembed,
+        domain: metadata.domain,
         media_metadata,
     };
 }
@@ -55,6 +56,8 @@ declare module 'node-html-parser' {
         meta(propertyName: string, content?: string): HTMLElement;
 
         image(url: string, width?: number, height?: number): HTMLElement;
+
+        video(url: string, width?: number, height?: number, type?: string): HTMLElement;
     }
 }
 
@@ -75,6 +78,20 @@ HTMLElement.prototype.image = function (url: string, width?: number, height?: nu
     return this;
 };
 
+HTMLElement.prototype.video = function (url: string, width?: number, height?: number, type: string = 'video/mp4'): HTMLElement {
+    this.meta('twitter:player', url);
+    this.meta('og:video', url);
+    this.meta('og:video:secure_url', url);
+    this.meta('og:video:type', type);
+    if (width && height) {
+        this.meta('og:video:width', width.toString());
+        this.meta('og:video:height', height.toString());
+        this.meta('twitter:player:width', width.toString());
+        this.meta('twitter:player:height', height.toString());
+    }
+    return this;
+};
+
 export function postToHtml(post: RedditPost): string {
     const html = new HTMLElement('html', {});
     const head = html.appendChild(new HTMLElement('head', {}));
@@ -89,31 +106,24 @@ export function postToHtml(post: RedditPost): string {
     let descriptionText = post.description;
     const descriptionStatus = [];
 
+    let type = 'object';
+
     switch (post.post_hint) {
         case 'image':
-            head.meta('og:type', 'object');
+            type = 'photo';
             head.meta('twitter:card', 'summary_large_image');
             head.image(post.url, post.resolution?.width, post.resolution?.height);
             break;
+        // case 'rich:video':
         case 'hosted:video':
-            head.meta('og:video', post.video_url);
-            head.meta('og:type', 'video.other');
-            head.meta('og:video:type', 'video/mp4');
-            if (post.video_url) {
-                head.meta('og:video:url', post.video_url);
-                head.meta('og:video:secure_url', post.video_url);
-                head.meta('twitter:player', post.video_url);
-            }
-            if (post.resolution) {
-                head.meta('og:video:width', post.resolution.width.toString());
-                head.meta('og:video:height', post.resolution.height.toString());
-                head.meta('twitter:player:width', post.resolution.width.toString());
-                head.meta('twitter:player:height', post.resolution.height.toString());
-            }
+            type = 'video.other';
+            head.video(post.video_url ?? post.url, post.resolution?.width, post.resolution?.height);
             break;
         default:
-            head.meta('og:type', 'object');
-            if (post.oembed) {
+            if (post.domain === 'youtu.be' || post.domain === 'www.youtube.com') {
+                type = 'video.other';
+                youtubeEmbed(post, post.url, head);
+            } else if (post.oembed) {
                 head.image(post.oembed.thumbnail_url);
                 descriptionText += post.oembed.title;
             } else if (post.preview_image_url) {
@@ -130,8 +140,11 @@ export function postToHtml(post: RedditPost): string {
                     head.image(image.url, image.width, image.height);
                 }
             }
+
             break;
     }
+
+    head.meta('og:type', type);
 
     // Set the description based on the post content and status
     const description = (descriptionStatus.join(' ') + '\n\n' + descriptionText).trim();
@@ -141,4 +154,26 @@ export function postToHtml(post: RedditPost): string {
     }
 
     return '<!DOCTYPE html>' + html.toString();
+}
+
+/** Converts the youtube link to a video embed url */
+function youtubeEmbed(post: RedditPost, link: string, head: HTMLElement) {
+    const url: URL = new URL(link);
+    let id: string | null = null;
+
+    if (url.hostname === 'youtu.be') {
+        // https://youtu.be/$id
+        id = url.pathname.substring(1);
+    } else if (url.hostname === 'www.youtube.com' && url.pathname === '/watch') {
+        // https://www.youtube.com/watch?v=$id
+        id = url.searchParams.get('v');
+    }
+
+    if (id) {
+        url.hostname = 'www.youtube.com';
+        url.pathname = '/embed/' + id;
+
+        head.video(url.toString(), post.oembed?.width, post.oembed?.height, 'text/html');
+        head.image(`https://img.youtube.com/vi/${id}/maxresdefault.jpg`, post.oembed?.width, post.oembed?.height);
+    }
 }

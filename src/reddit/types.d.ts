@@ -13,7 +13,7 @@ export interface RedditListingResponse {
                 selftext: string; // description of the post
                 is_reddit_media_domain: boolean;
                 num_comments?: number; // number of comments
-                upvate_ratio?: number; // percentage of upvotes
+                domain?: string;
                 media?: {
                     reddit_video?: {
                         fallback_url: string;
@@ -60,6 +60,7 @@ export interface RedditPost {
     description: string;
     is_reddit_media: boolean;
     preview_image_url?: string;
+    domain?: string;
     resolution?: {
         width: number;
         height: number;
