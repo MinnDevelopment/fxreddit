@@ -40,8 +40,8 @@ class ResponseError extends Error {
     }
 }
 
-async function get_post(subreddit: string, id: string, slug: string): Promise<RedditPost> {
-    return await fetch(`${REDDIT_BASE_URL}/r/${subreddit}/comments/${id}/${slug}.json`, { headers: FETCH_HEADERS, ...CACHE })
+async function get_post(id: string): Promise<RedditPost> {
+    return await fetch(`${REDDIT_BASE_URL}/${id}.json`, { headers: FETCH_HEADERS, ...CACHE })
         .then((r) => r.ok ? r.json<RedditListingResponse[]>() : Promise.reject(new ResponseError(r.status, r.statusText)))
         .then(([json]) => parseRedditPost(json));
 }
@@ -75,54 +75,56 @@ function redirectBrowser(req: IRequest, force: boolean = false) {
 
 const router = Router();
 
+async function handlePost({ params, url, headers: reqHeaders }: IRequest) {
+    const { name, id, slug } = params;
+
+    const headers: HeadersInit = { ...RESPONSE_HEADERS };
+    const { protocol } = new URL(url);
+    if (protocol === 'https:') {
+        headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload';
+    }
+
+    try {
+        const post = await get_post(id);
+        const html = postToHtml(post);
+
+        return new Response(html, {
+            headers
+        });
+    } catch (err) {
+        const { status, error } = err as ResponseError;
+        if (status === 404) {
+            return new Response('Post not found', {
+                headers,
+                status
+            });
+        } else {
+            sentry.captureException(err as Error, {
+                tags: {
+                    name,
+                    id,
+                    slug
+                },
+                user: {
+                    ip: reqHeaders.get('cf-connecting-ip') ?? undefined,
+                },
+            });
+            return new Response(`Error: ${status} ${error}`, {
+                headers,
+                status: 500,
+                statusText: 'Internal Server Error'
+            });
+        }
+    }
+}
+
 router
     // Redirect all browser usage
     .all('*', (req) => redirectBrowser(req))
     // Otherwise, if its a bot we respond with a meta tag page
-    .get('/r/:name/comments/:id/:slug', async ({ params, url, headers: reqHeaders }) => {
-        const name = params.name;
-        const id = params.id;
-        const slug = params.slug;
-
-        const headers: HeadersInit = { ...RESPONSE_HEADERS };
-        const { protocol } = new URL(url);
-        if (protocol === 'https:') {
-            headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload';
-        }
-
-        try {
-            const post = await get_post(name, id, slug);
-            const html = postToHtml(post);
-
-            return new Response(html, {
-                headers
-            });
-        } catch (err) {
-            const { status, error } = err as ResponseError;
-            if (status === 404) {
-                return new Response('Post not found', {
-                    headers,
-                    status
-                });
-            } else {
-                sentry.captureException(err as Error, {
-                    tags: {
-                        name,
-                        id,
-                        slug
-                    },
-                    user: {
-                        ip: reqHeaders.get('cf-connecting-ip') ?? undefined,
-                    },
-                });
-                return new Response(`Error: ${status} ${error}`, {
-                    headers,
-                    status: 500,
-                    statusText: 'Internal Server Error'
-                });
-            }
-        }
-    })
+    .get('/r/:name/comments/:id/:slug?', handlePost)
+    .get('/r/:name/:id/:slug?', handlePost)
+    .get('/:id/:slug?', handlePost)
     // On missing routes we simply redirect
     .all('*', (req) => redirectBrowser(req, true));
 
