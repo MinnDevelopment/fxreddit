@@ -23,12 +23,13 @@ export function parseRedditPost(record: RedditListingResponse): RedditPost {
 
     const media_metadata: Image[] = [];
     if (metadata.media_metadata && metadata.gallery_data?.items) {
-        for (const { media_id } of metadata.gallery_data.items) {
+        for (const { media_id, caption } of metadata.gallery_data.items) {
             const value = metadata.media_metadata[media_id];
             media_metadata.push({
                 width: value.s.x,
                 height: value.s.y,
                 url: value.s.u,
+                caption: caption,
             });
         }
     }
@@ -130,14 +131,23 @@ export function postToHtml(post: RedditPost): string {
                 head.image(post.preview_image_url);
             } else if (post.media_metadata && post.media_metadata.length) {
                 head.meta('twitter:card', 'summary_large_image');
-                if (post.media_metadata.length > 1) {
-                    head.meta('twitter:image:alt', `Image 1 of ${post.media_metadata.length}`);
-                    head.meta('og:image:alt', `Image 1 of ${post.media_metadata.length}`);
+                const amount = post.media_metadata.length;
+
+                if (amount > 1) {
                     descriptionStatus.push(`🖼️ Gallery: ${post.media_metadata.length} Images`);
                 }
 
+                let index = 1;
                 for (const image of post.media_metadata) {
                     head.image(image.url, image.width, image.height);
+                    if (image.caption?.length) {
+                        head.meta('twitter:image:alt', image.caption);
+                        head.meta('og:image:alt', image.caption);
+                    } else if (amount > 1) {
+                        head.meta('twitter:image:alt', `Image ${index} of ${amount}`);
+                        head.meta('og:image:alt', `Image ${index} of ${amount}`);
+                        index++;
+                    }
                 }
             }
 

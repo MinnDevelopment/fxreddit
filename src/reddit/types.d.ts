@@ -45,7 +45,12 @@ export interface RedditListingResponse {
                         u: string;
                     };
                 }>;
-                gallery_data?: { items: { media_id: string }[] };
+                gallery_data?: {
+                    items: [{
+                        caption?: string,
+                        media_id: string
+                    }]
+                };
             }
         }[];
     };
@@ -79,4 +84,5 @@ export interface Image {
     url: string;
     width: number;
     height: number;
+    caption?: string;
 }
