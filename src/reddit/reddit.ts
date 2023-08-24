@@ -149,6 +149,14 @@ export function postToHtml(post: RedditPost): string {
                         index++;
                     }
                 }
+            } else {
+                const url = new URL(post.url);
+                if (url.pathname.endsWith('.png') || url.pathname.endsWith('.jpg') || url.pathname.endsWith('.gif')) {
+                    head.meta('twitter:card', 'summary_large_image');
+                    head.image(post.url);
+                } else if (url.pathname.endsWith('.mp4')) {
+                    head.video(post.url);
+                }
             }
 
             break;
