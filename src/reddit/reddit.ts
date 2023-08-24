@@ -134,7 +134,7 @@ export function postToHtml(post: RedditPost): string {
     }
 
     // Set the description based on the post content and status
-    const description = (descriptionText + '\n\n' + descriptionStatus.join(' ')).trim();
+    const description = (descriptionStatus.join(' ') + '\n\n' + descriptionText).trim();
     if (description.length) {
         head.meta('og:description', description);
         head.meta('twitter:description', description);
