@@ -121,7 +121,7 @@ export function postToHtml(post: RedditPost): string {
             head.video(post.video_url ?? post.url, post.resolution?.width, post.resolution?.height);
             break;
         default:
-            if (post.domain === 'youtu.be' || post.domain === 'www.youtube.com') {
+            if (post.domain === 'youtu.be' || post.domain === 'www.youtube.com' || post.domain === 'youtube.com') {
                 type = 'video.other';
                 youtubeEmbed(post, post.url, head);
             } else if (post.oembed) {
@@ -169,15 +169,14 @@ export function postToHtml(post: RedditPost): string {
 /** Converts the youtube link to a video embed url */
 function youtubeEmbed(post: RedditPost, link: string, head: HTMLElement) {
     const url: URL = new URL(link);
-    let id: string | null = null;
 
-    if (url.hostname === 'youtu.be') {
-        // https://youtu.be/$id
-        id = url.pathname.substring(1);
-    } else if (url.hostname === 'www.youtube.com' && url.pathname === '/watch') {
-        // https://www.youtube.com/watch?v=$id
-        id = url.searchParams.get('v');
-    }
+    const YOUTUBE_EXTRACTOR: Record<string, (url: URL) => string | null> = {
+        'youtu.be': (url: URL) => url.pathname.substring(1), // https://youtu.be/abc123
+        'www.youtube.com': (url: URL) => url.searchParams.get('v'), // https://www.youtube.com/watch?v=abc123
+        'youtube.com': (url: URL) => url.searchParams.get('v'), // https://youtube.com/watch?v=abc123
+    };
+
+    const id = YOUTUBE_EXTRACTOR[url.hostname]?.(url) ?? null;
 
     if (id) {
         url.hostname = 'www.youtube.com';
