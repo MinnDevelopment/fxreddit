@@ -72,6 +72,7 @@ export function postToHtml(post: RedditPost): string {
     head.meta('og:url', `https://www.reddit.com${post.permalink}`);
     head.meta('og:site_name', 'rxddit.com');
     head.meta('twitter:site', 'rxddit.com');
+    head.meta('theme-color', '#ff581a');
 
     if (post.description) {
         head.meta('og:description', post.description);
