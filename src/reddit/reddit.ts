@@ -52,15 +52,27 @@ export function parseRedditPost(record: RedditListingResponse): RedditPost {
 
 declare module 'node-html-parser' {
     interface HTMLElement {
-        meta(propertyName: string, content: string | undefined): HTMLElement;
+        meta(propertyName: string, content?: string): HTMLElement;
+
+        image(url: string, width?: number, height?: number): HTMLElement;
     }
 }
 
-HTMLElement.prototype.meta = function (propertyName: string, content: string | undefined): HTMLElement {
+HTMLElement.prototype.meta = function (propertyName: string, content?: string): HTMLElement {
     const node = this.appendChild(new HTMLElement('meta', {}));
     node.setAttribute('property', propertyName);
     node.setAttribute('content', content ?? '');
     return node;
+};
+
+HTMLElement.prototype.image = function (url: string, width?: number, height?: number): HTMLElement {
+    this.meta('twitter:image:src', url);
+    this.meta('og:image', url);
+    if (width && height) {
+        this.meta('og:image:width', width.toString());
+        this.meta('og:image:height', height.toString());
+    }
+    return this;
 };
 
 export function postToHtml(post: RedditPost): string {
@@ -74,21 +86,14 @@ export function postToHtml(post: RedditPost): string {
     head.meta('twitter:site', 'rxddit.com');
     head.meta('theme-color', '#ff581a');
 
-    if (post.description) {
-        head.meta('og:description', post.description);
-        head.meta('twitter:description', post.description);
-    }
+    let descriptionText = post.description;
+    const descriptionStatus = [];
 
     switch (post.post_hint) {
         case 'image':
             head.meta('og:type', 'object');
-            head.meta('og:image', post.url);
-            head.meta('twitter:image:src', post.url);
             head.meta('twitter:card', 'summary_large_image');
-            if (post.resolution) {
-                head.meta('og:image:width', post.resolution.width.toString());
-                head.meta('og:image:height', post.resolution.height.toString());
-            }
+            head.image(post.url, post.resolution?.width, post.resolution?.height);
             break;
         case 'hosted:video':
             head.meta('og:video', post.video_url);
@@ -109,26 +114,30 @@ export function postToHtml(post: RedditPost): string {
         default:
             head.meta('og:type', 'object');
             if (post.oembed) {
-                head.meta('og:image', post.oembed.thumbnail_url);
-                head.meta('og:description', post.oembed.title);
+                head.image(post.oembed.thumbnail_url);
+                descriptionText += post.oembed.title;
             } else if (post.preview_image_url) {
-                head.meta('og:image', post.preview_image_url);
+                head.image(post.preview_image_url);
             } else if (post.media_metadata && post.media_metadata.length) {
                 head.meta('twitter:card', 'summary_large_image');
-                head.meta('twitter:image:alt', `Image 1 of ${post.media_metadata.length}`);
-                head.meta('og:image:alt', `Image 1 of ${post.media_metadata.length}`);
                 if (post.media_metadata.length > 1) {
-                    head.meta('og:description', `🖼️ Gallery: ${post.media_metadata.length} Images`);
-                    head.meta('twitter:description', `🖼️ Gallery: ${post.media_metadata.length} Images`);
+                    head.meta('twitter:image:alt', `Image 1 of ${post.media_metadata.length}`);
+                    head.meta('og:image:alt', `Image 1 of ${post.media_metadata.length}`);
+                    descriptionStatus.push(`🖼️ Gallery: ${post.media_metadata.length} Images`);
                 }
+
                 for (const image of post.media_metadata) {
-                    head.meta('twitter:image:src', image.url);
-                    head.meta('og:image', image.url);
-                    head.meta('og:image:width', image.width.toString());
-                    head.meta('og:image:height', image.height.toString());
+                    head.image(image.url, image.width, image.height);
                 }
             }
             break;
+    }
+
+    // Set the description based on the post content and status
+    const description = (descriptionText + '\n\n' + descriptionStatus.join(' ')).trim();
+    if (description.length) {
+        head.meta('og:description', description);
+        head.meta('twitter:description', description);
     }
 
     return '<!DOCTYPE html>' + html.toString();
