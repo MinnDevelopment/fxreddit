@@ -34,19 +34,19 @@ An image post is a reddit post with just an uploaded image. This provides the ti
 
 A gallery post is a reddit post with multiple attached images. Since Discord can only show a single image for link embeds, the description includes a tag line that indicates the existence of multiple images.
 
-![gallery post embed](gallery-post-embed)
+![gallery post embed][gallery-post-embed]
 
 ### Video Posts
 
 A video post works exactly like an image post, except for providing a video instead. Note that the videos are muted due to the simply being a preview provided by reddit.
 
-![video post embed](video-post-embed)
+![video post embed][video-post-embed]
 
 ### YouTube Posts
 
 A YouTube post is a video post that links to a youtube video. The service will instead provide a link to the embed iframe, which can be handled by Discord as a youtube iframe instead.
 
-![youtube post embed](youtube-post-embed)
+![youtube post embed][youtube-post-embed]
 
 ### Article Posts
 
