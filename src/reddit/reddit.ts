@@ -113,12 +113,14 @@ export function postToHtml(post: RedditPost): string {
                 head.meta('og:description', post.oembed.title);
             } else if (post.preview_image_url) {
                 head.meta('og:image', post.preview_image_url);
-            } else if (post.media_metadata) {
+            } else if (post.media_metadata && post.media_metadata.length) {
                 head.meta('twitter:card', 'summary_large_image');
                 head.meta('twitter:image:alt', `Image 1 of ${post.media_metadata.length}`);
                 head.meta('og:image:alt', `Image 1 of ${post.media_metadata.length}`);
-                head.meta('og:description', `🖼️ Gallery: ${post.media_metadata.length} Images`);
-                head.meta('twitter:description', `🖼️ Gallery: ${post.media_metadata.length} Images`);
+                if (post.media_metadata.length > 1) {
+                    head.meta('og:description', `🖼️ Gallery: ${post.media_metadata.length} Images`);
+                    head.meta('twitter:description', `🖼️ Gallery: ${post.media_metadata.length} Images`);
+                }
                 for (const image of post.media_metadata) {
                     head.meta('twitter:image:src', image.url);
                     head.meta('og:image', image.url);
