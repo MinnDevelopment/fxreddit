@@ -15,7 +15,9 @@ const CUSTOM_DOMAIN = 'rxddit.com';
 // const WORKER_DOMAIN = 'vxreddit.minn.workers.dev';
 
 const FETCH_HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/116.0'
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/116.0',
+    'Accept': 'application/json',
+    'Accept-Language': 'en-US,en;q=0.5',
 };
 
 const RESPONSE_HEADERS = {
@@ -36,12 +38,19 @@ const CACHE = {
 
 class ResponseError extends Error {
     constructor(public status: number, public error: string) {
-        super(error);
+        super(`${status}: ${error}`);
     }
 }
 
-async function get_post(id: string): Promise<RedditPost> {
-    return await fetch(`${REDDIT_BASE_URL}/${id}.json`, { headers: FETCH_HEADERS, ...CACHE })
+async function get_post(id: string, subreddit?: string, slug?: string): Promise<RedditPost> {
+    let url = REDDIT_BASE_URL;
+    if (subreddit && slug) {
+        url += `/r/${subreddit}/comments/${id}/${slug}.json`;
+    } else {
+        url += `/${id}.json`;
+    }
+
+    return await fetch(url, { headers: FETCH_HEADERS, ...CACHE })
         .then((r) => r.ok ? r.json<RedditListingResponse[]>() : Promise.reject(new ResponseError(r.status, r.statusText)))
         .then(([json]) => parseRedditPost(json));
 }
@@ -75,7 +84,7 @@ function redirectBrowser(req: IRequest, force: boolean = false) {
 
 const router = Router();
 
-async function handlePost({ params, url, headers: reqHeaders }: IRequest) {
+async function handlePost({ params, url }: IRequest) {
     const { name, id, slug } = params;
 
     const headers: HeadersInit = { ...RESPONSE_HEADERS };
@@ -85,35 +94,21 @@ async function handlePost({ params, url, headers: reqHeaders }: IRequest) {
     }
 
     try {
-        const post = await get_post(id);
+        const post = await get_post(id, name, slug);
         const html = postToHtml(post);
 
         return new Response(html, {
             headers
         });
     } catch (err) {
-        const { status, error } = err as ResponseError;
+        const { status } = err as ResponseError;
         if (status === 404) {
             return new Response('Post not found', {
                 headers,
                 status
             });
         } else {
-            sentry.captureException(err as Error, {
-                tags: {
-                    name,
-                    id,
-                    slug
-                },
-                user: {
-                    ip: reqHeaders.get('cf-connecting-ip') ?? undefined,
-                },
-            });
-            return new Response(`Error: ${status} ${error}`, {
-                headers,
-                status: 500,
-                statusText: 'Internal Server Error'
-            });
+            throw err;
         }
     }
 }
