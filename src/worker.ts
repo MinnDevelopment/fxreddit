@@ -118,9 +118,15 @@ async function handlePost({ params, url, headers: reqHeaders }: IRequest) {
     }
 }
 
+const ROBOTS_TXT = () => new Response('User-agent: *\nDisallow: /', { headers: { 'Content-Type': 'text/plain' } });
+const SECURITY_TXT = () => new Response('Contact: https://github.com/MinnDevelopment/fxreddit/issues/new', { headers: { 'Content-Type': 'text/plain' } });
+
 router
     // Redirect all browser usage
     .all('*', (req) => redirectBrowser(req))
+    // Block all robots / crawlers
+    .get('/robots.txt', ROBOTS_TXT)
+    .get('/security.txt', SECURITY_TXT)
     // Otherwise, if its a bot we respond with a meta tag page
     .get('/r/:name/comments/:id/:slug?', handlePost)
     .get('/r/:name/:id/:slug?', handlePost)
