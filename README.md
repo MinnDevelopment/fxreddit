@@ -24,6 +24,14 @@ I do not plan on maintaining this actively or accepting further changes through 
 
 This has specialized handling for various types of reddit posts.
 
+The currently supported routes are:
+
+| Route                              | Example                                                                                                  |
+|------------------------------------|----------------------------------------------------------------------------------------------------------|
+| `/r/:subreddit/comments/:id/:slug` | https://rxddit.com/r/shittymoviedetails/comments/160onpq/breaking_actor_from_home_alone_2_arrested_today |
+| `/r/:subreddit/comments/:id`       | https://rxddit.com/r/shittymoviedetails/comments/160onpq                                                 |
+| `/:id`                             | https://rxddit.com/160onpq                                                                               |
+
 ### Image Posts
 
 An image post is a reddit post with just an uploaded image. This provides the title and image as a large image card.

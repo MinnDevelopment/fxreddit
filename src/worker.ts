@@ -129,8 +129,7 @@ router
     .get('/security.txt', SECURITY_TXT)
     // Otherwise, if its a bot we respond with a meta tag page
     .get('/r/:name/comments/:id/:slug?', handlePost)
-    .get('/r/:name/:id/:slug?', handlePost)
-    .get('/:id/:slug?', handlePost)
+    .get('/:id', handlePost)
     // On missing routes we simply redirect
     .all('*', (req) => redirectBrowser(req, true));
 
