@@ -22,6 +22,8 @@ export interface RedditListingResponse {
                     };
                     oembed?: {
                         thumbnail_url: string;
+                        thumbnail_width: number;
+                        thumbnail_height: number;
                         width: number;
                         height: number;
                         title: string;
@@ -37,6 +39,11 @@ export interface RedditListingResponse {
                     reddit_video?: {
                         fallback_url: string;
                     };
+                };
+                secure_media_embed?: {
+                    media_domain_url: string;
+                    width: number;
+                    height: number;
                 };
                 media_metadata?: Record<string, {
                     s: {
@@ -73,11 +80,18 @@ export interface RedditPost {
     video_url?: string;
     oembed?: {
         thumbnail_url: string;
+        thumbnail_width: number;
+        thumbnail_height: number;
         width: number;
         height: number;
         title: string;
     };
     media_metadata?: Image[];
+    secure_media_embed?: {
+        media_domain_url: string;
+        width: number;
+        height: number;
+    };
 }
 
 export interface Image {

@@ -95,7 +95,7 @@ async function handlePost({ params, url }: IRequest) {
 
     try {
         const post = await get_post(id, name, slug);
-        const html = postToHtml(post);
+        const html = await postToHtml(post);
 
         return new Response(html, {
             headers

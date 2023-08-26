@@ -1,4 +1,4 @@
-import { HTMLElement } from 'node-html-parser';
+import { HTMLElement, parse as parseHTML } from 'node-html-parser';
 import { Image, RedditListingResponse, RedditPost } from './types';
 
 export function parseRedditPost(record: RedditListingResponse): RedditPost {
@@ -48,6 +48,7 @@ export function parseRedditPost(record: RedditListingResponse): RedditPost {
         video_url: video_url,
         oembed: metadata.media?.oembed,
         domain: metadata.domain,
+        secure_media_embed: metadata.secure_media_embed,
         media_metadata,
     };
 }
@@ -93,7 +94,7 @@ HTMLElement.prototype.video = function (url: string, width?: number, height?: nu
     return this;
 };
 
-export function postToHtml(post: RedditPost): string {
+export async function postToHtml(post: RedditPost): Promise<string> {
     const html = new HTMLElement('html', {});
     const head = html.appendChild(new HTMLElement('head', {}));
 
@@ -120,10 +121,11 @@ export function postToHtml(post: RedditPost): string {
             type = 'video.other';
             head.video(post.video_url ?? post.url, post.resolution?.width, post.resolution?.height);
             break;
-        default:
-            if (post.domain === 'youtu.be' || post.domain === 'www.youtube.com' || post.domain === 'youtube.com') {
-                type = 'video.other';
-                youtubeEmbed(post, post.url, head);
+        default: {
+            const domainHandler = getDomainHandler(post.domain);
+            if (domainHandler) {
+                type = domainHandler.type;
+                await domainHandler.handler(post, post.url, head);
             } else if (post.oembed) {
                 head.image(post.oembed.thumbnail_url);
                 descriptionText += post.oembed.title;
@@ -160,6 +162,7 @@ export function postToHtml(post: RedditPost): string {
             }
 
             break;
+        }
     }
 
     head.meta('og:type', type);
@@ -174,9 +177,44 @@ export function postToHtml(post: RedditPost): string {
     return '<!DOCTYPE html>' + html.toString();
 }
 
+function getDomainHandler(domain?: string) {
+    switch (domain) {
+        case 'youtu.be':
+        case 'www.youtube.com':
+        case 'youtube.com':
+            return {
+                handler: youtubeEmbed,
+                type: 'video.other',
+            };
+        case 'clips.twitch.tv':
+            return {
+                handler: twitchClipEmbed,
+                type: 'video.other',
+            };
+        default:
+            return null;
+    }
+}
+
 /** Converts the youtube link to a video embed url */
-function youtubeEmbed(post: RedditPost, link: string, head: HTMLElement) {
+async function youtubeEmbed(post: RedditPost, link: string, head: HTMLElement) {
     const url: URL = new URL(link);
+
+    // Clip links need another request to extract a proper url for embedding
+    if (url.pathname.startsWith('/clip/')) {
+        const html = await fetch(link).then(r => r.text()).then(parseHTML);
+        const clipEmbed = html.querySelector('meta[name="twitter:player"]')?.getAttribute('content');
+        const thumbnail = html.querySelector('meta[name="twitter:image"]')?.getAttribute('content');
+
+        if (thumbnail) {
+            head.image(thumbnail, post.oembed?.width, post.oembed?.height);
+        }
+        if (clipEmbed) {
+            head.video(clipEmbed, post.oembed?.width, post.oembed?.height, 'text/html');
+        }
+
+        return;
+    }
 
     const YOUTUBE_EXTRACTOR: Record<string, (url: URL) => string | null> = {
         'youtu.be': (url: URL) => url.pathname.substring(1), // https://youtu.be/abc123
@@ -192,5 +230,24 @@ function youtubeEmbed(post: RedditPost, link: string, head: HTMLElement) {
 
         head.video(url.toString(), post.oembed?.width, post.oembed?.height, 'text/html');
         head.image(`https://img.youtube.com/vi/${id}/maxresdefault.jpg`, post.oembed?.width, post.oembed?.height);
+    }
+}
+
+/** Converts the twitch clip link to a video embed url */
+async function twitchClipEmbed(post: RedditPost, link: string, head: HTMLElement) {
+    const url: URL = new URL(link);
+    const slug = url.pathname.substring(1);
+    url.pathname = '/embed';
+    url.searchParams.set('clip', slug);
+    url.searchParams.set('parent', 'meta.tag');
+
+    if (post.secure_media_embed) {
+        head.video(post.secure_media_embed.media_domain_url, post.secure_media_embed.width, post.secure_media_embed.height, 'text/html');
+    } else {
+        head.video(url.toString(), post.oembed?.width, post.oembed?.height, 'text/html');
+    }
+
+    if (post.oembed) {
+        head.image(post.oembed.thumbnail_url, post.oembed?.thumbnail_width, post.oembed?.thumbnail_height);
     }
 }
