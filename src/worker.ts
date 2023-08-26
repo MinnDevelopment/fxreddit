@@ -1,5 +1,6 @@
 import { IRequest, Router, html as HtmlResponse } from 'itty-router';
-import { parseRedditPost, postToHtml } from './reddit/reddit';
+import { postToHtml } from './reddit/compile';
+import { parseRedditPost } from './reddit/parse';
 import { RedditListingResponse, RedditPost } from './reddit/types';
 import { Sentry } from '@borderless/worker-sentry';
 
