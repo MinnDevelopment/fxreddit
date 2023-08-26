@@ -233,6 +233,26 @@ async function youtubeEmbed(post: RedditPost, link: string, head: HTMLElement) {
     }
 }
 
+const TWITCH_ANCESTORS = [
+    'twitter.com',
+    'x.com', // 🤡
+    'cards-frame.twitter.com',
+    'tweetdeck.twitter.com',
+    'discordapp.com',
+    'discord.com',
+    'ptb.discordapp.com',
+    'ptb.discord.com',
+    'canary.discordapp.com',
+    'canary.discord.com',
+    'embedly.com',
+    'cdn.embedly.com',
+    'facebook.com',
+    'www.facebook.com',
+    'meta.com', // 🤡
+    'www.meta.com',
+    'vk.com',
+];
+
 /** Converts the twitch clip link to a video embed url */
 async function twitchClipEmbed(post: RedditPost, link: string, head: HTMLElement) {
     const url: URL = new URL(link);
@@ -240,9 +260,10 @@ async function twitchClipEmbed(post: RedditPost, link: string, head: HTMLElement
     url.pathname = '/embed';
     url.searchParams.set('clip', slug);
 
-    for (const parent of ['discord.com', 'discordapp.com', 'canary.discord.com', 'ptb.discord.com', 'canary.discordapp.com', 'ptb.discordapp.com']) {
+    // This is required so the csp allows us to embed the video
+    // idk what twitch was thinking on this one my dudes
+    for (const parent of TWITCH_ANCESTORS) {
         url.searchParams.append('parent', parent);
-        url.searchParams.append('parent', 'www.' + parent);
     }
 
     head.video(url.toString(), post.oembed?.width, post.oembed?.height, 'text/html');
