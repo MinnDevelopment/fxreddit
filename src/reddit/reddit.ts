@@ -239,15 +239,15 @@ async function twitchClipEmbed(post: RedditPost, link: string, head: HTMLElement
     const slug = url.pathname.substring(1);
     url.pathname = '/embed';
     url.searchParams.set('clip', slug);
-    url.searchParams.set('parent', 'meta.tag');
 
-    if (post.secure_media_embed) {
-        head.video(post.secure_media_embed.media_domain_url, post.secure_media_embed.width, post.secure_media_embed.height, 'text/html');
-    } else {
-        head.video(url.toString(), post.oembed?.width, post.oembed?.height, 'text/html');
+    for (const parent of ['discord.com', 'discordapp.com', 'canary.discord.com', 'ptb.discord.com', 'canary.discordapp.com', 'ptb.discordapp.com']) {
+        url.searchParams.append('parent', parent);
+        url.searchParams.append('parent', 'www.' + parent);
     }
 
-    if (post.oembed) {
+    head.video(url.toString(), post.oembed?.width, post.oembed?.height, 'text/html');
+
+    if (post.oembed?.thumbnail_url) {
         head.image(post.oembed.thumbnail_url, post.oembed?.thumbnail_width, post.oembed?.thumbnail_height);
     }
 }
