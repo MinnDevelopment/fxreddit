@@ -1,5 +1,6 @@
 import { RedditPost } from '../reddit/types';
 import { HTMLElement, parse as parseHTML } from 'node-html-parser';
+import { CACHE_CONFIG } from '../cache';
 import '../html';
 
 const LINK_REGEX = new RegExp('^https?://(?:www\\.)?(?:twitter|x)\\.com/(?:#!/)?([^/]+)/status(?:es)?/([^/]+)$', 'i');
@@ -13,7 +14,7 @@ export async function twitterLinkEmbed(post: RedditPost, link: string, head: HTM
     const [, username, id] = result ?? [];
 
     if (username && id) {
-        const html = await fetch(`https://fxtwitter.com/${username}/status/${id}`, { headers: FXTWITTER_HEADERS }).then(r => r.text()).then(parseHTML);
+        const html = await fetch(`https://fxtwitter.com/${username}/status/${id}`, { headers: FXTWITTER_HEADERS, ...CACHE_CONFIG }).then(r => r.text()).then(parseHTML);
 
         const description = html.querySelector('meta[property="og:description"]')?.getAttribute('content');
         const image = html.querySelector('meta[property="og:image"]')?.getAttribute('content');

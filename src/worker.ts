@@ -4,6 +4,7 @@ import { parseRedditPost } from './reddit/parse';
 import { RedditListingResponse, RedditPost } from './reddit/types';
 import { Sentry } from '@borderless/worker-sentry';
 import { HTMLElement } from 'node-html-parser';
+import { CACHE_CONFIG } from './cache';
 
 const sentry = new Sentry({
     dsn: SENTRY_ENDPOINT,
@@ -27,17 +28,6 @@ const RESPONSE_HEADERS = {
     'Cache-Control': 'public, max-age=86400'
 };
 
-const CACHE = {
-    cf: {
-        cacheEverything: true,
-        cacheTtlByStatus: {
-            '200-299': 86400,
-            '404': 1,
-            '500-599': 0
-        } // Cache for 1 day
-    }
-};
-
 class ResponseError extends Error {
     constructor(public status: number, public error: string) {
         super(`${status}: ${error}`);
@@ -52,7 +42,7 @@ async function get_post(id: string, subreddit?: string, slug?: string): Promise<
         url += `/${id}.json`;
     }
 
-    return await fetch(url, { headers: FETCH_HEADERS, ...CACHE })
+    return await fetch(url, { headers: FETCH_HEADERS, ...CACHE_CONFIG })
         .then((r) => r.ok ? r.json<RedditListingResponse[]>() : Promise.reject(new ResponseError(r.status, r.statusText)))
         .then(([json]) => parseRedditPost(json));
 }

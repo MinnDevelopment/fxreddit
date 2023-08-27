@@ -1,5 +1,6 @@
 import { RedditPost } from '../reddit/types';
 import { HTMLElement, parse as parseHTML } from 'node-html-parser';
+import { CACHE_CONFIG } from '../cache';
 import '../html';
 
 /** Converts the youtube link to a video embed url */
@@ -8,7 +9,7 @@ export async function youtubeEmbed(post: RedditPost, link: string, head: HTMLEle
 
     // Clip links need another request to extract a proper url for embedding
     if (url.pathname.startsWith('/clip/')) {
-        const html = await fetch(link).then(r => r.text()).then(parseHTML);
+        const html = await fetch(link, { ...CACHE_CONFIG }).then(r => r.text()).then(parseHTML);
         const clipEmbed = html.querySelector('meta[name="twitter:player"]')?.getAttribute('content');
         const thumbnail = html.querySelector('meta[name="twitter:image"]')?.getAttribute('content');
 
