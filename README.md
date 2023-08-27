@@ -1,8 +1,10 @@
 [image-post-embed]: https://raw.githubusercontent.com/MinnDevelopment/fxreddit/master/assets/image-post-embed.png
 [gallery-post-embed]: https://raw.githubusercontent.com/MinnDevelopment/fxreddit/master/assets/gallery-post-embed.png
-[video-post-embed]: https://raw.githubusercontent.com/MinnDevelopment/fxreddit/master/assets/video-post-embed.mp4
-[youtube-post-embed]: https://raw.githubusercontent.com/MinnDevelopment/fxreddit/master/assets/youtube-post-embed.mp4
+[video-post-embed]: https://raw.githubusercontent.com/MinnDevelopment/fxreddit/master/assets/video-post-embed.gif
+[youtube-post-embed]: https://raw.githubusercontent.com/MinnDevelopment/fxreddit/master/assets/youtube-post-embed.gif
 [article-post-embed]: https://raw.githubusercontent.com/MinnDevelopment/fxreddit/master/assets/article-post-embed.png
+[tweet-post-embed]: https://raw.githubusercontent.com/MinnDevelopment/fxreddit/master/assets/tweet-post-embed.png
+[twitch-post-embed]: https://raw.githubusercontent.com/MinnDevelopment/fxreddit/master/assets/twitch-post-embed.gif
 
 # FixReddit
 
@@ -48,16 +50,28 @@ A gallery post is a reddit post with multiple attached images. Since Discord can
 
 A video post works exactly like an image post, except for providing a video instead. Note that the videos are muted due to the simply being a preview provided by reddit.
 
-https://github.com/MinnDevelopment/fxreddit/assets/18090140/5d1178ba-9414-497f-a776-ebf5b9878cd6
+![video post embed][video-post-embed]
 
 ### YouTube Posts
 
-A YouTube post is a video post that links to a youtube video. The service will instead provide a link to the embed iframe, which can be handled by Discord as a youtube iframe instead.
+A YouTube post is a video post that links to a youtube video. The service will instead provide a link to the embed iframe, which can be handled by Discord as a youtube iframe instead. This also includes clips!
 
-https://github.com/MinnDevelopment/fxreddit/assets/18090140/7eba3535-7586-49da-b1fb-3bb384fb0162
+![youtube post embed][youtube-post-embed]
 
 ### Article Posts
 
 Article posts are simply external links, and sometimes provide a thumbnail.
 
 ![article post embed][article-post-embed]
+
+### Tweet Posts
+
+Tweet posts are links to tweets, which might include images or videos and text content.
+
+![tweet post embed][tweet-post-embed]
+
+### Twitch Posts
+
+Twitch posts are links to twitch clips or VODs.
+
+![twitch post embed][twitch-post-embed]
