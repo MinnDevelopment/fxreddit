@@ -2,6 +2,7 @@ import { HTMLElement } from 'node-html-parser';
 import { RedditPost } from './types';
 import { youtubeEmbed } from '../embeds/youtube';
 import { twitchClipEmbed } from '../embeds/twitch';
+import { twitterLinkEmbed } from '../embeds/twitter';
 import '../html';
 
 function getDomainHandler(domain?: string) {
@@ -17,6 +18,12 @@ function getDomainHandler(domain?: string) {
             return {
                 handler: twitchClipEmbed,
                 type: 'video.other',
+            };
+        case 'twitter.com':
+        case 'x.com':
+            return {
+                handler: twitterLinkEmbed,
+                type: 'summary',
             };
         default:
             return null;
@@ -50,6 +57,15 @@ export async function postToHtml(post: RedditPost): Promise<string> {
             type = 'video.other';
             head.video(post.video_url ?? post.url, post.resolution?.width, post.resolution?.height);
             break;
+        case 'link': {
+            type = 'object';
+            const domainHandler = getDomainHandler(post.domain);
+            if (domainHandler) {
+                type = domainHandler.type;
+                await domainHandler.handler(post, post.url, head);
+            }
+            break;
+        }
         default: {
             const domainHandler = getDomainHandler(post.domain);
             if (domainHandler) {
