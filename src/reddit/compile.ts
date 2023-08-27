@@ -30,19 +30,13 @@ function getDomainHandler(domain?: string) {
     }
 }
 
-export async function postToHtml(post: RedditPost): Promise<string> {
+export async function postToHtml(post: RedditPost): Promise<HTMLElement> {
     const html = new HTMLElement('html', {});
     const head = html.appendChild(new HTMLElement('head', {}));
-    const original = `https://www.reddit.com${post.permalink}`;
-
-    head.appendChild(new HTMLElement('meta', {})
-        .setAttribute('http-equiv', 'Refresh')
-        .setAttribute('content', `0; URL=${original}`)
-    );
 
     head.meta('og:title', `r/${post.subreddit}: ${post.title}`);
     head.meta('twitter:title', post.title);
-    head.meta('og:url', original);
+    head.meta('og:url', `https://www.reddit.com${post.permalink}`);
     head.meta('og:site_name', 'rxddit.com');
     head.meta('twitter:site', 'rxddit.com');
     head.meta('theme-color', '#ff581a');
@@ -117,5 +111,5 @@ export async function postToHtml(post: RedditPost): Promise<string> {
         head.meta('twitter:description', description);
     }
 
-    return '<!DOCTYPE html>' + html.toString();
+    return html;
 }

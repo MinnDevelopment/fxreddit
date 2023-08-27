@@ -3,6 +3,7 @@ import { postToHtml } from './reddit/compile';
 import { parseRedditPost } from './reddit/parse';
 import { RedditListingResponse, RedditPost } from './reddit/types';
 import { Sentry } from '@borderless/worker-sentry';
+import { HTMLElement } from 'node-html-parser';
 
 const sentry = new Sentry({
     dsn: SENTRY_ENDPOINT,
@@ -60,12 +61,8 @@ function isBot({ headers }: IRequest): boolean {
     return headers.get('User-Agent')?.toLowerCase()?.includes('bot') ?? false;
 }
 
-function redirectBrowser(req: IRequest, force: boolean = false) {
-    if (!force && isBot(req)) {
-        return;
-    }
-
-    const location = new URL(req.url);
+function getOriginalUrl(url: string) {
+    const location = new URL(url);
 
     if (location.hostname.endsWith(CUSTOM_DOMAIN)) {
         location.hostname = location.hostname.replace(CUSTOM_DOMAIN, 'reddit.com');
@@ -76,7 +73,11 @@ function redirectBrowser(req: IRequest, force: boolean = false) {
     location.protocol = 'https:';
     location.port = '';
 
-    const url = location.toString();
+    return location.toString();
+}
+
+function fallbackRedirect(req: IRequest) {
+    const url = getOriginalUrl(req.url);
 
     return HtmlResponse(`<head><meta http-equiv="Refresh" content="0; URL=${url.replaceAll('"', '\\"')}" /></head>`, {
         headers: { Location: url }, status: 302
@@ -85,8 +86,11 @@ function redirectBrowser(req: IRequest, force: boolean = false) {
 
 const router = Router();
 
-async function handlePost({ params, url }: IRequest) {
+async function handlePost(request: IRequest) {
+    const { params, url } = request;
     const { name, id, slug } = params;
+    const originalLink = getOriginalUrl(url);
+    const bot = isBot(request);
 
     const headers: HeadersInit = { ...RESPONSE_HEADERS };
     const { protocol } = new URL(url);
@@ -94,12 +98,22 @@ async function handlePost({ params, url }: IRequest) {
         headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload';
     }
 
+    if (!bot) { // forcing redirect for browsers
+        headers['Location'] = originalLink;
+    }
+
     try {
         const post = await get_post(id, name, slug);
         const html = await postToHtml(post);
+        
+        html.querySelector('head')?.appendChild(new HTMLElement('meta', {})
+            .setAttribute('http-equiv', 'Refresh')
+            .setAttribute('content', `0; URL=${originalLink}`)
+        );
 
-        return new Response(html, {
-            headers
+        return new Response(html.toString(), {
+            headers,
+            status: bot ? 200 : 302
         });
     } catch (err) {
         const { status } = err as ResponseError;
@@ -120,7 +134,7 @@ const NOT_FOUND = () => new Response('Not Found', { status: 404 });
 
 router
     // Redirect all browser usage
-    .all('*', (req) => redirectBrowser(req))
+    // .all('*', (req) => redirectBrowser(req))
     // Block all robots / crawlers
     .get('/robots.txt', ROBOTS_TXT)
     .get('/security.txt', SECURITY_TXT)
@@ -131,7 +145,7 @@ router
     .get('/r/:name/comments/:id/:slug?', handlePost)
     .get('/:id', handlePost)
     // On missing routes we simply redirect
-    .all('*', (req) => redirectBrowser(req, true));
+    .all('*', fallbackRedirect);
 
 addEventListener('fetch', (event) => {
     event.respondWith(router.handle(event.request).catch((err) => {
