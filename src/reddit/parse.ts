@@ -6,10 +6,12 @@ export function parseRedditPost(record: RedditListingResponse): RedditPost {
 
     let post_hint = metadata.post_hint;
     let video_url = metadata.secure_media?.reddit_video?.fallback_url;
+    let has_audio = true;
 
     if (metadata?.media?.reddit_video) {
         resolution = { width: metadata.media.reddit_video.width, height: metadata.media.reddit_video.height };
         video_url = metadata.media.reddit_video.fallback_url;
+        has_audio = metadata.media.reddit_video.has_audio;
         post_hint = 'hosted:video';
     } else if (metadata?.preview?.images?.length) {
         if (metadata.preview.images[0].source) {
@@ -56,6 +58,7 @@ export function parseRedditPost(record: RedditListingResponse): RedditPost {
         preview_image_url: metadata.preview?.images?.[0].source?.url ?? metadata.thumbnail,
         resolution: resolution ? { width: resolution.width, height: resolution.height } : undefined,
         video_url: video_url,
+        video_has_audio: has_audio,
         oembed: metadata.media?.oembed,
         domain: metadata.domain,
         secure_media_embed: metadata.secure_media_embed,

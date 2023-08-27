@@ -22,6 +22,7 @@ export interface RedditListingResponse {
                         fallback_url: string;
                         height: number;
                         width: number;
+                        has_audio: boolean;
                     };
                     oembed?: {
                         thumbnail_url: string;
@@ -81,6 +82,7 @@ export interface RedditPost {
         height: number;
     };
     video_url?: string;
+    video_has_audio?: boolean;
     oembed?: {
         thumbnail_url: string;
         thumbnail_width: number;
