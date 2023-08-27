@@ -14,6 +14,9 @@ export interface RedditListingResponse {
                 is_reddit_media_domain: boolean;
                 num_comments?: number; // number of comments
                 domain?: string;
+                thumbnail?: string;
+                thumbnail_width?: number;
+                thumbnail_height?: number;
                 media?: {
                     reddit_video?: {
                         fallback_url: string;

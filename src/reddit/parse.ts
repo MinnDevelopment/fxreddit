@@ -18,6 +18,8 @@ export function parseRedditPost(record: RedditListingResponse): RedditPost {
             const resolutions = metadata.preview?.images?.[0].resolutions;
             resolution = resolutions?.[resolutions?.length - 1];
         }
+    } else if (metadata?.thumbnail_width && metadata?.thumbnail_height) {
+        resolution = { width: metadata.thumbnail_width, height: metadata.thumbnail_height };
     }
 
     const media_metadata: Image[] = [];
@@ -31,6 +33,15 @@ export function parseRedditPost(record: RedditListingResponse): RedditPost {
                 caption: caption,
             });
         }
+    } else if (metadata.media_metadata) {
+        for (const { s: { x, y, u } } of Object.values(metadata.media_metadata)) {
+            if (!x || !y || !u) continue;
+            media_metadata.push({
+                width: x,
+                height: y,
+                url: u,
+            });
+        }
     }
 
     return {
@@ -40,9 +51,9 @@ export function parseRedditPost(record: RedditListingResponse): RedditPost {
         post_hint: post_hint,
         url: metadata.url,
         permalink: metadata.permalink,
-        description: metadata.selftext,
+        description: metadata.selftext?.replace(/^&amp;#x200B;/, '')?.trim(),
         is_reddit_media: metadata.is_reddit_media_domain,
-        preview_image_url: metadata.preview?.images?.[0].source?.url,
+        preview_image_url: metadata.preview?.images?.[0].source?.url ?? metadata.thumbnail,
         resolution: resolution ? { width: resolution.width, height: resolution.height } : undefined,
         video_url: video_url,
         oembed: metadata.media?.oembed,

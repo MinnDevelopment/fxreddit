@@ -57,25 +57,12 @@ export async function postToHtml(post: RedditPost): Promise<string> {
             type = 'video.other';
             head.video(post.video_url ?? post.url, post.resolution?.width, post.resolution?.height);
             break;
-        case 'link': {
-            type = 'object';
-            const domainHandler = getDomainHandler(post.domain);
-            if (domainHandler) {
-                type = domainHandler.type;
-                await domainHandler.handler(post, post.url, head);
-            }
-            break;
-        }
+        case 'link':
         default: {
             const domainHandler = getDomainHandler(post.domain);
             if (domainHandler) {
                 type = domainHandler.type;
                 await domainHandler.handler(post, post.url, head);
-            } else if (post.oembed) {
-                head.image(post.oembed.thumbnail_url);
-                descriptionText += post.oembed.title;
-            } else if (post.preview_image_url) {
-                head.image(post.preview_image_url);
             } else if (post.media_metadata && post.media_metadata.length) {
                 head.meta('twitter:card', 'summary_large_image');
                 const amount = post.media_metadata.length;
@@ -96,6 +83,11 @@ export async function postToHtml(post: RedditPost): Promise<string> {
                         index++;
                     }
                 }
+            } else if (post.oembed) {
+                head.image(post.oembed.thumbnail_url);
+                descriptionText += post.oembed.title;
+            } else if (post.preview_image_url) {
+                head.image(post.preview_image_url, post.resolution?.width, post.resolution?.height);
             } else {
                 const url = new URL(post.url);
                 if (url.pathname.endsWith('.png') || url.pathname.endsWith('.jpg') || url.pathname.endsWith('.gif')) {
