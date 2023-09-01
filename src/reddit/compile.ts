@@ -88,7 +88,7 @@ export async function postToHtml(post: RedditPost): Promise<HTMLElement> {
                 descriptionText += post.oembed.title;
             } else if (post.preview_image_url) {
                 head.image(post.preview_image_url, post.resolution?.width, post.resolution?.height);
-            } else {
+            } else if (post.url) {
                 const url = new URL(post.url);
                 if (url.pathname.endsWith('.png') || url.pathname.endsWith('.jpg') || url.pathname.endsWith('.gif')) {
                     head.meta('twitter:card', 'summary_large_image');
@@ -103,6 +103,11 @@ export async function postToHtml(post: RedditPost): Promise<HTMLElement> {
     }
 
     head.meta('og:type', type);
+
+    if (post.comment?.author) {
+        const { author, description: comment } = post.comment;
+        descriptionText += `\nComment by u/${author}${comment ? `:\n${comment}` : ''}`;
+    }
 
     // Set the description based on the post content and status
     const description = (descriptionStatus.join(' ') + '\n\n' + descriptionText).trim();

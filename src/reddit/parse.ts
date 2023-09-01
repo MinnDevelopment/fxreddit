@@ -1,7 +1,6 @@
-import { Image, RedditListingResponse, RedditPost } from './types';
+import { Image, RedditListingData, RedditPost } from './types';
 
-export function parseRedditPost(record: RedditListingResponse): RedditPost {
-    const metadata = record.data.children[0].data;
+export function parseRedditPost(metadata: RedditListingData): RedditPost {
     let resolution: undefined | { width: number, height: number } = undefined;
 
     let post_hint = metadata.post_hint;
@@ -47,13 +46,12 @@ export function parseRedditPost(record: RedditListingResponse): RedditPost {
     }
 
     return {
-        kind: record.kind,
         subreddit: metadata.subreddit,
         title: metadata.title,
         post_hint: post_hint,
         url: metadata.url,
         permalink: metadata.permalink,
-        description: metadata.selftext?.replace(/^&amp;#x200B;/, '')?.trim(),
+        description: (metadata.selftext ?? metadata.body)?.replace(/^&amp;#x200B;/, '')?.trim() ?? '',
         is_reddit_media: metadata.is_reddit_media_domain,
         preview_image_url: metadata.preview?.images?.[0].source?.url ?? metadata.thumbnail,
         resolution: resolution ? { width: resolution.width, height: resolution.height } : undefined,
@@ -63,5 +61,6 @@ export function parseRedditPost(record: RedditListingResponse): RedditPost {
         domain: metadata.domain,
         secure_media_embed: metadata.secure_media_embed,
         media_metadata,
+        author: metadata.author,
     };
 }

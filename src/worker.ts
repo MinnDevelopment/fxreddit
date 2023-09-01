@@ -1,7 +1,7 @@
 import { IRequest, Router, html as HtmlResponse } from 'itty-router';
 import { postToHtml } from './reddit/compile';
 import { parseRedditPost } from './reddit/parse';
-import { RedditListingResponse, RedditPost } from './reddit/types';
+import { RedditListingData, RedditListingResponse, RedditPost } from './reddit/types';
 import { Sentry } from '@borderless/worker-sentry';
 import { HTMLElement } from 'node-html-parser';
 import { CACHE_CONFIG } from './cache';
@@ -34,17 +34,49 @@ class ResponseError extends Error {
     }
 }
 
-async function get_post(id: string, subreddit?: string, slug?: string): Promise<RedditPost> {
+function findComment(children: { data: RedditListingData }[], id: string): RedditListingData | null {
+    for (const { data } of children) {
+        if (!id || data.id == id) {
+            return data;
+        }
+
+        const comment = data.replies ? findComment(data.replies.data.children, id) : undefined;
+        if (comment) {
+            return comment;
+        }
+    }
+
+    return null;
+}
+
+async function get_post(id: string, subreddit?: string, slug?: string, commentRef?: string): Promise<RedditPost> {
     let url = REDDIT_BASE_URL;
-    if (subreddit && slug) {
+    if (subreddit && slug && commentRef) {
+        url += `/r/${subreddit}/comments/${id}/${slug}/${commentRef}.json`;
+    } else if (subreddit && slug) {
         url += `/r/${subreddit}/comments/${id}/${slug}.json`;
+    } else if (subreddit) {
+        url += `/r/${subreddit}/comments/${id}.json`;
     } else {
         url += `/${id}.json`;
     }
 
     return await fetch(url, { headers: FETCH_HEADERS, ...CACHE_CONFIG })
         .then((r) => r.ok ? r.json<RedditListingResponse[]>() : Promise.reject(new ResponseError(r.status, r.statusText)))
-        .then(([json]) => parseRedditPost(json));
+        .then(list => {
+            const post = parseRedditPost(list[0].data.children[0].data);
+            if (commentRef) {
+                for (const listing of list) {
+                    const comment = findComment(listing.data.children, commentRef);
+                    if (comment) {
+                        post.comment = parseRedditPost(comment);
+                        break;
+                    }
+                }
+            }
+
+            return post;
+        });
 }
 
 function isBot({ headers }: IRequest): boolean {
@@ -78,7 +110,7 @@ const router = Router();
 
 async function handlePost(request: IRequest) {
     const { params, url } = request;
-    const { name, id, slug } = params;
+    const { name, id, slug, ref } = params;
     const originalLink = getOriginalUrl(url);
     const bot = isBot(request);
 
@@ -93,9 +125,9 @@ async function handlePost(request: IRequest) {
     }
 
     try {
-        const post = await get_post(id, name, slug);
+        const post = await get_post(id, name, slug, ref);
         const html = await postToHtml(post);
-        
+
         html.querySelector('head')?.appendChild(new HTMLElement('meta', {})
             .setAttribute('http-equiv', 'Refresh')
             .setAttribute('content', `0; URL=${originalLink}`)
@@ -128,12 +160,19 @@ router
     // Block all robots / crawlers
     .get('/robots.txt', ROBOTS_TXT)
     .get('/security.txt', SECURITY_TXT)
+    .get('/blog', NOT_FOUND)
+    .get('/new', NOT_FOUND)
     .get('/*.ico', NOT_FOUND)
+    .get('/*.png', NOT_FOUND)
+    .get('/*.jpg', NOT_FOUND)
+    .get('/*.jpeg', NOT_FOUND)
     .get('/*.txt', NOT_FOUND)
     .get('/*.xml', NOT_FOUND)
-    // Otherwise, if its a bot we respond with a meta tag page
+    // Links to posts
     .get('/r/:name/comments/:id/:slug?', handlePost)
     .get('/:id', handlePost)
+    // Direct links to comments
+    .get('/r/:name/comments/:id/:slug/:ref', handlePost)
     // On missing routes we simply redirect
     .all('*', fallbackRedirect);
 
