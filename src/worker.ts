@@ -16,7 +16,7 @@ const sentry = new Sentry({
 
 const REDDIT_BASE_URL = 'https://www.reddit.com';
 const CUSTOM_DOMAIN = 'rxddit.com';
-// const WORKER_DOMAIN = 'vxreddit.minn.workers.dev';
+const GITHUB_LINK = 'https://github.com/MinnDevelopment/fxreddit';
 
 const FETCH_HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/116.0',
@@ -201,6 +201,7 @@ const handleSubredditPost = (req: IRequest) => handlePost(req, get_subreddit_pos
 const handleProfilePost = (req: IRequest) => handlePost(req, get_profile_post);
 
 router
+    .get('/', () => HtmlResponse(redirectPage(GITHUB_LINK).toString(), { status: 302, headers: { Location: GITHUB_LINK } }))
     // Block all robots / crawlers
     .get('/robots.txt', ROBOTS_TXT)
     .get('/security.txt', SECURITY_TXT)
