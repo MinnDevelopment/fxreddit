@@ -40,3 +40,9 @@ HTMLElement.prototype.video = function (url: string, width?: number, height?: nu
     }
     return this;
 };
+
+export function httpEquiv(url: string) {
+    return new HTMLElement('meta', {})
+        .setAttribute('http-equiv', 'Refresh')
+        .setAttribute('content', `0; URL=${url}`);
+}

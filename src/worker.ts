@@ -5,6 +5,7 @@ import { RedditListingData, RedditListingResponse, RedditPost } from './reddit/t
 import { Sentry } from '@borderless/worker-sentry';
 import { HTMLElement } from 'node-html-parser';
 import { CACHE_CONFIG } from './cache';
+import { httpEquiv } from './html';
 
 const sentry = new Sentry({
     dsn: SENTRY_ENDPOINT,
@@ -98,10 +99,17 @@ function getOriginalUrl(url: string) {
     return location.toString();
 }
 
+function redirectPage(url: string) {
+    const html = new HTMLElement('html', {});
+    html.appendChild(new HTMLElement('head', {}).appendChild(httpEquiv(url)));
+    return html;
+}
+
 function fallbackRedirect(req: IRequest) {
     const url = getOriginalUrl(req.url);
+    const html = redirectPage(url);
 
-    return HtmlResponse(`<head><meta http-equiv="Refresh" content="0; URL=${url.replaceAll('"', '\\"')}" /></head>`, {
+    return HtmlResponse(html.toString(), {
         headers: { Location: url }, status: 302
     });
 }
@@ -122,20 +130,18 @@ async function handlePost(request: IRequest) {
 
     if (!bot) { // forcing redirect for browsers
         headers['Location'] = originalLink;
+        return new Response(redirectPage(originalLink).toString(), { headers, status: 302 });
     }
 
     try {
         const post = await get_post(id, name, slug, ref);
         const html = await postToHtml(post);
 
-        html.querySelector('head')?.appendChild(new HTMLElement('meta', {})
-            .setAttribute('http-equiv', 'Refresh')
-            .setAttribute('content', `0; URL=${originalLink}`)
-        );
+        html.querySelector('head')?.appendChild(httpEquiv(originalLink));
 
         return new Response(html.toString(), {
             headers,
-            status: bot ? 200 : 302
+            status: 200
         });
     } catch (err) {
         const { status } = err as ResponseError;
@@ -150,18 +156,40 @@ async function handlePost(request: IRequest) {
     }
 }
 
+/** Determines the original link by using the Location header */
+async function handleShare(request: IRequest) {
+    const url = new URL(request.url);
+    url.hostname = 'www.reddit.com';
+    url.port = '';
+    url.protocol = 'https:';
+
+    const response = await fetch(url.toString(), { headers: FETCH_HEADERS, ...CACHE_CONFIG, redirect: 'manual' });
+    const location = response.headers.get('Location');
+    if (location) {
+        const redirect = new URL(location);
+        redirect.hostname = new URL(request.url).hostname;
+        return new Response(redirectPage(redirect.toString()).toString(), {
+            headers: {
+                Location: redirect.toString(),
+                ...RESPONSE_HEADERS
+            }, status: 302
+        });
+    } else {
+        return new Response('Post not found', { status: 404 });
+    }
+}
+
 const ROBOTS_TXT = () => new Response('User-agent: *\nDisallow: /', { headers: { 'Content-Type': 'text/plain' } });
 const SECURITY_TXT = () => new Response('Contact: https://github.com/MinnDevelopment/fxreddit/issues/new', { headers: { 'Content-Type': 'text/plain' } });
 const NOT_FOUND = () => new Response('Not Found', { status: 404 });
 
 router
-    // Redirect all browser usage
-    // .all('*', (req) => redirectBrowser(req))
     // Block all robots / crawlers
     .get('/robots.txt', ROBOTS_TXT)
     .get('/security.txt', SECURITY_TXT)
-    .get('/blog', NOT_FOUND)
-    .get('/new', NOT_FOUND)
+    .get('/blog', fallbackRedirect)
+    .get('/new', fallbackRedirect)
+    // Some static files we don't support
     .get('/*.ico', NOT_FOUND)
     .get('/*.png', NOT_FOUND)
     .get('/*.jpg', NOT_FOUND)
@@ -173,6 +201,8 @@ router
     .get('/:id', handlePost)
     // Direct links to comments
     .get('/r/:name/comments/:id/:slug/:ref', handlePost)
+    // Share links
+    .get('/r/:name/s/:id', handleShare)
     // On missing routes we simply redirect
     .all('*', fallbackRedirect);
 
