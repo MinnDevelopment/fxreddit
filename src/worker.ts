@@ -50,18 +50,7 @@ function findComment(children: { data: RedditListingData }[], id: string): Reddi
     return null;
 }
 
-async function get_post(id: string, subreddit?: string, slug?: string, commentRef?: string): Promise<RedditPost> {
-    let url = REDDIT_BASE_URL;
-    if (subreddit && slug && commentRef) {
-        url += `/r/${subreddit}/comments/${id}/${slug}/${commentRef}.json`;
-    } else if (subreddit && slug) {
-        url += `/r/${subreddit}/comments/${id}/${slug}.json`;
-    } else if (subreddit) {
-        url += `/r/${subreddit}/comments/${id}.json`;
-    } else {
-        url += `/${id}.json`;
-    }
-
+async function get_post(url: string, commentRef?: string) {
     return await fetch(url, { headers: FETCH_HEADERS, ...CACHE_CONFIG })
         .then((r) => r.ok ? r.json<RedditListingResponse[]>() : Promise.reject(new ResponseError(r.status, r.statusText)))
         .then(list => {
@@ -78,6 +67,31 @@ async function get_post(id: string, subreddit?: string, slug?: string, commentRe
 
             return post;
         });
+}
+
+function get_post_url(type: string, id: string, subreddit?: string, slug?: string, commentRef?: string) {
+    let url = REDDIT_BASE_URL;
+    if (subreddit && slug && commentRef) {
+        url += `/${type}/${subreddit}/comments/${id}/${slug}/${commentRef}.json`;
+    } else if (subreddit && slug) {
+        url += `/${type}/${subreddit}/comments/${id}/${slug}.json`;
+    } else if (subreddit) {
+        url += `/${type}/${subreddit}/comments/${id}.json`;
+    } else {
+        url += `/${id}.json`;
+    }
+
+    return url;
+}
+
+async function get_subreddit_post(id: string, subreddit?: string, slug?: string, commentRef?: string): Promise<RedditPost> {
+    const url = get_post_url('r', id, subreddit, slug, commentRef);
+    return await get_post(url, commentRef);
+}
+
+async function get_profile_post(id: string, user?: string, slug?: string, commentRef?: string): Promise<RedditPost> {
+    const url = get_post_url('user', id, user, slug, commentRef);
+    return await get_post(url, commentRef);
 }
 
 function isBot({ headers }: IRequest): boolean {
@@ -116,7 +130,7 @@ function fallbackRedirect(req: IRequest) {
 
 const router = Router();
 
-async function handlePost(request: IRequest) {
+async function handlePost(request: IRequest, resolver: (id: string, name?: string, slug?: string, ref?: string) => Promise<RedditPost>) {
     const { params, url } = request;
     const { name, id, slug, ref } = params;
     const originalLink = getOriginalUrl(url);
@@ -134,7 +148,7 @@ async function handlePost(request: IRequest) {
     }
 
     try {
-        const post = await get_post(id, name, slug, ref);
+        const post = await resolver(id, name, slug, ref);
         const html = await postToHtml(post);
 
         html.querySelector('head')?.appendChild(httpEquiv(originalLink));
@@ -183,6 +197,9 @@ const ROBOTS_TXT = () => new Response('User-agent: *\nDisallow: /', { headers: {
 const SECURITY_TXT = () => new Response('Contact: https://github.com/MinnDevelopment/fxreddit/issues/new', { headers: { 'Content-Type': 'text/plain' } });
 const NOT_FOUND = () => new Response('Not Found', { status: 404 });
 
+const handleSubredditPost = (req: IRequest) => handlePost(req, get_subreddit_post);
+const handleProfilePost = (req: IRequest) => handlePost(req, get_profile_post);
+
 router
     // Block all robots / crawlers
     .get('/robots.txt', ROBOTS_TXT)
@@ -197,12 +214,18 @@ router
     .get('/*.txt', NOT_FOUND)
     .get('/*.xml', NOT_FOUND)
     // Links to posts
-    .get('/r/:name/comments/:id/:slug?', handlePost)
-    .get('/:id', handlePost)
+    .get('/r/:name/comments/:id/:slug?', handleSubredditPost)
+    .get('/:id', handleSubredditPost)
+    .get('/user/:name/comments/:id/:slug?', handleProfilePost)
+    .get('/u/:name/comments/:id/:slug?', handleProfilePost)
     // Direct links to comments
-    .get('/r/:name/comments/:id/:slug/:ref', handlePost)
+    .get('/r/:name/comments/:id/:slug/:ref', handleSubredditPost)
+    .get('/user/:name/comments/:id/:slug/:ref', handleProfilePost)
+    .get('/u/:name/comments/:id/:slug/:ref', handleProfilePost)
     // Share links
     .get('/r/:name/s/:id', handleShare)
+    .get('/u/:name/s/:id', handleShare)
+    .get('/user/:name/s/:id', handleShare)
     // On missing routes we simply redirect
     .all('*', fallbackRedirect);
 

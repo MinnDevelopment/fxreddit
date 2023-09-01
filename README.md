@@ -36,6 +36,8 @@ The currently supported routes are:
 | `/r/:subreddit/s/:id`                       | https://rxddit.com/r/MemePiece/s/15w6vzg82W                                                                      |
 | `/:id`                                      | https://rxddit.com/160onpq                                                                                       |
 
+Or replacing `/r/` with `/u/` and `/user/` for profile posts.
+
 ### Image Posts
 
 An image post is a reddit post with just an uploaded image. This provides the title and image as a large image card.
