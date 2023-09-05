@@ -50,7 +50,7 @@ export interface RedditListingData {
         height: number;
     };
     media_metadata?: Record<string, {
-        s: {
+        s?: {
             y: number; // height
             x: number; // width
             u: string;
