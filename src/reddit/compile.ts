@@ -106,7 +106,12 @@ export async function postToHtml(post: RedditPost): Promise<HTMLElement> {
 
     if (post.comment?.author) {
         const { author, description: comment } = post.comment;
-        descriptionText += `\nComment by u/${author}${comment ? `:\n${comment}` : ''}`;
+        const commentText = `Comment by u/${author}${comment ? `:\n${comment}` : ''}`;
+        if (commentText.length < 1000) {
+            descriptionText = `${commentText}\n\n---- Original Post ----\n\n${descriptionText}`;
+        } else {
+            descriptionText = commentText;
+        }
     }
 
     // Set the description based on the post content and status
