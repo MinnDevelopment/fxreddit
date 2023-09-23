@@ -52,7 +52,7 @@ A gallery post is a reddit post with multiple attached images. Since Discord can
 
 ### Video Posts
 
-A video post works exactly like an image post, except for providing a video instead. Note that the videos are muted due to the simply being a preview provided by reddit.
+A video post works exactly like an image post, except for providing a video instead. Note that the videos are muted due to limitations by reddit.
 
 ![video post embed][video-post-embed]
 
