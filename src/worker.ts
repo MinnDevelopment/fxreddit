@@ -35,6 +35,10 @@ class ResponseError extends Error {
     }
 }
 
+function cleanSpoiler(string: string): string {
+    return string.endsWith('||') ? string.substring(0, string.length - 2) : string;
+}
+
 function findComment(children: { data: RedditListingData }[], id: string): RedditListingData | null {
     for (const { data } of children) {
         if (!id || data.id == id) {
@@ -72,13 +76,13 @@ async function get_post(url: string, commentRef?: string) {
 function get_post_url(type: string, id: string, subreddit?: string, slug?: string, commentRef?: string) {
     let url = REDDIT_BASE_URL;
     if (subreddit && slug && commentRef) {
-        url += `/${type}/${subreddit}/comments/${id}/${slug}/${commentRef}.json`;
+        url += `/${type}/${subreddit}/comments/${id}/${slug}/${cleanSpoiler(commentRef)}.json`;
     } else if (subreddit && slug) {
-        url += `/${type}/${subreddit}/comments/${id}/${slug}.json`;
+        url += `/${type}/${subreddit}/comments/${id}/${cleanSpoiler(slug)}.json`;
     } else if (subreddit) {
-        url += `/${type}/${subreddit}/comments/${id}.json`;
+        url += `/${type}/${subreddit}/comments/${cleanSpoiler(id)}.json`;
     } else {
-        url += `/${id}.json`;
+        url += `/${cleanSpoiler(id)}.json`;
     }
 
     return url;
@@ -131,7 +135,8 @@ function fallbackRedirect(req: IRequest) {
 const router = Router();
 
 async function handlePost(request: IRequest, resolver: (id: string, name?: string, slug?: string, ref?: string) => Promise<RedditPost>) {
-    const { params, url } = request;
+    const { params } = request;
+    const url = cleanSpoiler(request.url);
     const { name, id, slug, ref } = params;
     const originalLink = getOriginalUrl(url);
     const bot = isBot(request);
@@ -172,7 +177,7 @@ async function handlePost(request: IRequest, resolver: (id: string, name?: strin
 
 /** Determines the original link by using the Location header */
 async function handleShare(request: IRequest) {
-    const url = new URL(request.url);
+    const url = new URL(cleanSpoiler(request.url));
     url.hostname = 'www.reddit.com';
     url.port = '';
     url.protocol = 'https:';
