@@ -1,5 +1,6 @@
-import { HTMLElement } from 'node-html-parser';
+import { HTMLElement, parse as parseHTML } from 'node-html-parser';
 import { RedditPost } from './types';
+import { CACHE_CONFIG } from '../cache';
 import { youtubeEmbed } from '../embeds/youtube';
 import { twitchClipEmbed } from '../embeds/twitch';
 import { twitterLinkEmbed } from '../embeds/twitter';
@@ -55,7 +56,26 @@ export async function postToHtml(post: RedditPost): Promise<HTMLElement> {
         // case 'rich:video':
         case 'hosted:video':
             type = 'video.other';
-            head.video(post.video_url ?? post.url, post.resolution?.width, post.resolution?.height);
+
+            try {
+                const url = new URL(`https://www.reddit.com${post.permalink}`);
+                const html = await fetch(url, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/116.0',
+                    }, ...CACHE_CONFIG, redirect: 'follow' })
+                    .then(r => r.text()).then(parseHTML);
+                const player = html.querySelector('[packaged-media-json]');
+                const json = JSON.parse(player.getAttribute('packaged-media-json'));
+                const videos = json.playbackMp4s.permutations;
+
+                if (videos) {
+                    const lastVideo = videos[videos.length - 1];
+                    head.video(lastVideo.source.url, lastVideo.source.dimensions.width, lastVideo.source.dimensions.height);
+                }
+            } catch (ignored) {
+                // If we can't find a video with audio, we'll just settle with the one provided by Reddit
+                head.video(post.video_url ?? post.url, post.resolution?.width, post.resolution?.height);
+            }
             break;
         case 'link':
         default: {
