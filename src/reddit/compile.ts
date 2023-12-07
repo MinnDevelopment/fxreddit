@@ -66,11 +66,11 @@ export async function postToHtml(post: RedditPost): Promise<HTMLElement> {
                     .then(r => r.text()).then(parseHTML);
                 const player = html.querySelector('[packaged-media-json]');
                 const json = JSON.parse(player.getAttribute('packaged-media-json'));
-                const videos = json?.playbackMp4s?.permutations;
+                const videos = json.playbackMp4s.permutations;
 
                 if (videos) {
                     const lastVideo = videos[videos.length - 1];
-                    head.video(lastVideo.source?.url, lastVideo.source.dimensions.width, lastVideo.source.dimensions.height);
+                    head.video(lastVideo.source.url, lastVideo.source.dimensions.width, lastVideo.source.dimensions.height);
                 }
             } catch (ignored) {
                 // If we can't find a video with audio, we'll just settle with the one provided by Reddit
