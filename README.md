@@ -46,7 +46,7 @@ An image post is a reddit post with just an uploaded image. This provides the ti
 
 ### Gallery Posts
 
-A gallery post is a reddit post with multiple attached images. Since Discord can only show a single image for link embeds, the description includes a tag line that indicates the existence of multiple images.
+A gallery post is a reddit post with multiple attached images. Since Discord can only show a up to four images for link embeds, the description includes a tag line that indicates the total number of images.
 
 ![gallery post embed][gallery-post-embed]
 
