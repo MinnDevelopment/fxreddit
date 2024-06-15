@@ -83,4 +83,6 @@ Twitch posts are links to twitch clips or VODs.
 
 ### Poll Posts
 
-![poll embed][poll-embed]
+Polls including votes (once finished).
+
+![poll embed][poll-post-embed]
