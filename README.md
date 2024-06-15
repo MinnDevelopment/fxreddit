@@ -5,6 +5,7 @@
 [article-post-embed]: https://raw.githubusercontent.com/MinnDevelopment/fxreddit/master/assets/article-post-embed.png
 [tweet-post-embed]: https://raw.githubusercontent.com/MinnDevelopment/fxreddit/master/assets/tweet-post-embed.png
 [twitch-post-embed]: https://raw.githubusercontent.com/MinnDevelopment/fxreddit/master/assets/twitch-post-embed.gif
+[poll-post-embed]: https://raw.githubusercontent.com/MinnDevelopment/fxreddit/master/assets/poll-post-embed.png
 
 # FixReddit
 
@@ -79,3 +80,9 @@ Tweet posts are links to tweets, which might include images or videos and text c
 Twitch posts are links to twitch clips or VODs.
 
 ![twitch post embed][twitch-post-embed]
+
+### Poll Posts
+
+Polls including votes (once finished).
+
+![poll embed][poll-post-embed]

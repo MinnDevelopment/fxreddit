@@ -1,11 +1,11 @@
-import { HTMLElement, parse as parseHTML } from 'node-html-parser';
-import { RedditPost } from './types';
-import { CACHE_CONFIG } from '../cache';
+import { HTMLElement } from 'node-html-parser';
+import { PollData, RedditPost } from './types';
 import { youtubeEmbed } from '../embeds/youtube';
 import { twitchClipEmbed } from '../embeds/twitch';
 import { twitterLinkEmbed } from '../embeds/twitter';
 import '../html';
 import { get_packaged_video } from '../util';
+import { isNonNullish } from 'remeda';
 
 function getDomainHandler(domain?: string) {
     switch (domain) {
@@ -127,12 +127,33 @@ export async function postToHtml(post: RedditPost): Promise<HTMLElement> {
         }
     }
 
+    const pollDescription = isNonNullish(post.poll_data) ? compilePollData(post.poll_data) : '';
+
     // Set the description based on the post content and status
-    const description = (descriptionStatus.join(' ') + '\n\n' + descriptionText).trim();
+    const description = [descriptionStatus.join(' '), descriptionText, pollDescription].join('\n\n').trim();
     if (description.length) {
         head.meta('og:description', description);
         head.meta('twitter:description', description);
     }
 
     return html;
+}
+
+function compilePollData({ options, total_vote_count }: PollData) {
+    const maxVotes = options.map(({ vote_count }) => vote_count).filter(isNonNullish).reduce((a, b) => Math.max(a, b), 0);
+    const answers = options.map(({ text, vote_count }) => {
+        const decoration = vote_count === maxVotes ? ' 🥇' : '';
+        if (isNonNullish(vote_count)) {
+            return `${text} (${vote_count} votes)\n${getPollAnswerBar(vote_count, total_vote_count)}${decoration}`;
+        } else {
+            return `- ${text}`;
+        }
+    }).join('\n');
+
+    return `📊 Poll:\n\n${answers}\n\nTotal Votes: ${total_vote_count}`;
+}
+
+function getPollAnswerBar(votes: number, total_votes: number) {
+    const percentage = Math.min(votes / total_votes, 1.0);
+    return '\u2587'.repeat(20 * percentage);
 }

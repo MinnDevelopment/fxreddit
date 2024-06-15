@@ -13,7 +13,8 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@borderless/worker-sentry": "^2.0.0",
-    "node-html-parser": "^6.1.6"
+    "node-html-parser": "^6.1.6",
+    "remeda": "^2.0.10"
   },
   "devDependencies": {
     "@sentry/types": "^7.64.0",

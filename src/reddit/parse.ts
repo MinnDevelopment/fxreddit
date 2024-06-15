@@ -1,3 +1,4 @@
+import { isNonNullish } from 'remeda';
 import { Image, RedditListingData, RedditPost } from './types';
 
 export function parseRedditPost(metadata: RedditListingData): RedditPost {
@@ -52,7 +53,7 @@ export function parseRedditPost(metadata: RedditListingData): RedditPost {
         post_hint: post_hint,
         url: metadata.url,
         permalink: metadata.permalink,
-        description: (metadata.selftext ?? metadata.body)?.replace(/^&amp;#x200B;/, '')?.trim() ?? '',
+        description: getDescription(metadata),
         is_reddit_media: metadata.is_reddit_media_domain,
         preview_image_url: metadata.preview?.images?.[0].source?.url ?? metadata.thumbnail,
         resolution: resolution ? { width: resolution.width, height: resolution.height } : undefined,
@@ -63,5 +64,14 @@ export function parseRedditPost(metadata: RedditListingData): RedditPost {
         secure_media_embed: metadata.secure_media_embed,
         media_metadata,
         author: metadata.author,
+        poll_data: metadata.poll_data,
     };
+}
+
+function getDescription(metadata: RedditListingData): string {
+    let text = metadata.selftext ?? metadata.body;
+    if (isNonNullish(metadata.poll_data)) {
+        text = text?.replace(/^\s*\[View Poll\]\([^)]+\)/gi, '');
+    }
+    return text?.replace(/^&amp;#x200B;/, '')?.trim() ?? '';
 }
