@@ -7,6 +7,7 @@ import ResponseError from '../response_error';
 import { postToHtml } from '../reddit/compile';
 import { parseRedditPost } from '../reddit/parse';
 import { CACHE_CONFIG } from '../cache';
+import { isArray, isNullish } from 'remeda';
 
 export async function handlePost(request: IRequest, resolver: (id: string, name?: string, slug?: string, ref?: string) => Promise<RedditPost>) {
     const { params } = request;
@@ -64,11 +65,26 @@ function findComment(children: { data: RedditListingData }[], id: string): Reddi
     return null;
 }
 
+function mapTyping(obj: unknown) {
+    if (isArray(obj)) {
+        const list = obj as unknown as RedditListingResponse[];
+        return { list, data: list[0]?.data?.children[0]?.data };
+    } else {
+        return undefined;
+    }
+}
+
 async function get_post(url: string, commentRef?: string) {
     return await fetch(url, { headers: FETCH_HEADERS, ...CACHE_CONFIG })
-        .then((r) => r.ok ? r.json<RedditListingResponse[]>() : Promise.reject(new ResponseError(r.status, r.statusText)))
-        .then(list => {
-            const post = parseRedditPost(list[0].data.children[0].data);
+        .then((r) => r.ok ? r.json() : Promise.reject(new ResponseError(r.status, r.statusText)))
+        .then(mapTyping)
+        .then(result => {
+            if (isNullish(result?.data)) {
+                throw new ResponseError(404, 'Not Found');
+            }
+
+            const { data, list } = result;
+            const post = parseRedditPost(data);
             if (commentRef) {
                 for (const listing of list) {
                     const comment = findComment(listing.data.children, commentRef);
