@@ -22,7 +22,7 @@
     "@typescript-eslint/parser": "^6.4.0",
 		"@cloudflare/workers-types": "^4.20240725.0",
     "eslint": "^8.47.0",
-    "itty-router": "^4.0.22",
+    "itty-router": "^5.0.17",
 		"typescript": "^5.5.2",
 		"wrangler": "^3.60.3"
   }
