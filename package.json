@@ -20,7 +20,7 @@
     "@sentry/types": "^7.64.0",
     "@typescript-eslint/eslint-plugin": "^6.4.0",
     "@typescript-eslint/parser": "^6.4.0",
-		"@cloudflare/workers-types": "^4.20240725.0",
+		"@cloudflare/workers-types": "^4.20240729.0",
     "eslint": "^8.47.0",
     "itty-router": "^4.0.22",
 		"typescript": "^5.5.2",
