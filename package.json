@@ -17,7 +17,7 @@
     "remeda": "^2.0.10"
   },
   "devDependencies": {
-    "@sentry/types": "^7.64.0",
+    "@sentry/types": "^8.29.0",
     "@typescript-eslint/eslint-plugin": "^6.4.0",
     "@typescript-eslint/parser": "^6.4.0",
 		"@cloudflare/workers-types": "^4.20240725.0",
