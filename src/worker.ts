@@ -2,7 +2,7 @@ import { Router, html as HtmlResponse } from 'itty-router';
 import { Sentry } from '@borderless/worker-sentry';
 import { HTMLElement } from 'node-html-parser';
 import { httpEquiv } from './html';
-import { handleProfilePost, handleSubredditPost } from './endpoints/post';
+import { handleProfilePost, handleShortLinkPost, handleSubredditPost } from './endpoints/post';
 import { handleShare } from './endpoints/share';
 import { getVideo } from './endpoints/video';
 import { GITHUB_LINK } from './constants';
@@ -37,7 +37,7 @@ router
     .get('/*.xml', NOT_FOUND)
     // Links to posts
     .get('/r/:name/comments/:id/:slug?', handleSubredditPost)
-    .get('/:id', handleSubredditPost)
+    .get('/:id', handleShortLinkPost)
     .get('/user/:name/comments/:id/:slug?', handleProfilePost)
     .get('/u/:name/comments/:id/:slug?', handleProfilePost)
     // Direct links to comments
@@ -81,7 +81,7 @@ addEventListener('fetch', (event) => {
         // Respond to the original request while the error is being logged (above).
         const html = new HTMLElement('html', {});
         const head = html.appendChild(new HTMLElement('head', {}));
-        head.appendChild(httpEquiv(getOriginalUrl(event.request.url)));
+        head.appendChild(httpEquiv(getOriginalUrl(event.request.url, false)));
         head.meta('og:description', `Failed to parse reddit post, please report bug!\n\n${GITHUB_LINK}/issues/new`);
         head.meta('theme-color', '#e3242b');
         const body = html.appendChild(new HTMLElement('body', {}));

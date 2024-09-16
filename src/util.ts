@@ -15,13 +15,16 @@ export function cleanSpoiler(string: string): string {
     return string.endsWith('||') ? string.substring(0, string.length - 2) : string;
 }
 
-export function getOriginalUrl(url: string) {
+export function getOriginalUrl(url: string, short: boolean) {
     const location = new URL(url);
 
+    const targetDomain = short ? 'redd.it' : 'reddit.com';
+
     if (location.hostname.endsWith(CUSTOM_DOMAIN)) {
-        location.hostname = location.hostname.replace(CUSTOM_DOMAIN, 'reddit.com');
+        const originalDomain = short ? location.hostname : CUSTOM_DOMAIN;
+        location.hostname = location.hostname.replace(originalDomain, targetDomain);
     } else {
-        location.hostname = 'reddit.com';
+        location.hostname = targetDomain;
     }
 
     location.protocol = 'https:';
@@ -42,7 +45,7 @@ export function redirectPage(url: string) {
 }
 
 export function fallbackRedirect(req: IRequest) {
-    const url = getOriginalUrl(req.url);
+    const url = getOriginalUrl(req.url, false);
     const html = redirectPage(url);
 
     return HtmlResponse(html.toString(), {

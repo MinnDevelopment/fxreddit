@@ -1,7 +1,7 @@
 import { IRequest } from 'itty-router';
 import { RedditListingData, RedditListingResponse, RedditPost } from '../reddit/types';
 import { cleanSpoiler, getOriginalUrl, isBot, redirectPage } from '../util';
-import { FETCH_HEADERS, REDDIT_BASE_URL, RESPONSE_HEADERS } from '../constants';
+import { FETCH_HEADERS, REDDIT_BASE_URL, REDDIT_SHORT_URL, RESPONSE_HEADERS } from '../constants';
 import { httpEquiv } from '../html';
 import ResponseError from '../response_error';
 import { postToHtml } from '../reddit/compile';
@@ -9,11 +9,11 @@ import { parseRedditPost } from '../reddit/parse';
 import { CACHE_CONFIG } from '../cache';
 import { isArray, isNullish } from 'remeda';
 
-export async function handlePost(request: IRequest, resolver: (id: string, name?: string, slug?: string, ref?: string) => Promise<RedditPost>) {
+export async function handlePost(request: IRequest, short: boolean, resolver: (id: string, name?: string, slug?: string, ref?: string) => Promise<RedditPost>) {
     const { params } = request;
     const url = cleanSpoiler(request.url);
     const { name, id, slug, ref } = params;
-    const originalLink = getOriginalUrl(url);
+    const originalLink = getOriginalUrl(url, short);
     const bot = isBot(request);
 
     const headers: HeadersInit = { ...RESPONSE_HEADERS };
@@ -124,5 +124,11 @@ async function get_profile_post(id: string, user?: string, slug?: string, commen
     return await get_post(url, commentRef);
 }
 
-export const handleSubredditPost = (req: IRequest) => handlePost(req, get_subreddit_post);
-export const handleProfilePost = (req: IRequest) => handlePost(req, get_profile_post);
+async function get_short_url_post(id: string) {
+    const response = await fetch(`${REDDIT_SHORT_URL}/${id}`);
+    return await get_post(`${response.url}.json`);
+}
+
+export const handleSubredditPost = (req: IRequest) => handlePost(req, false, get_subreddit_post);
+export const handleProfilePost = (req: IRequest) => handlePost(req, false, get_profile_post);
+export const handleShortLinkPost = (req: IRequest) => handlePost(req, true, get_short_url_post);
