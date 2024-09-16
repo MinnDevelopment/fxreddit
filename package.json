@@ -14,7 +14,7 @@
   "dependencies": {
     "@borderless/worker-sentry": "^2.0.0",
     "node-html-parser": "^6.1.6",
-    "remeda": "^2.0.10"
+    "remeda": "^2.12.1"
   },
   "devDependencies": {
     "@sentry/types": "^7.64.0",
