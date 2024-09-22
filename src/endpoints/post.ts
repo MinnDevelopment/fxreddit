@@ -2,7 +2,6 @@ import { IRequest } from 'itty-router';
 import { RedditListingData, RedditListingResponse, RedditPost } from '../reddit/types';
 import { cleanSpoiler, getOriginalUrl, isBot, redirectPage } from '../util';
 import { FETCH_HEADERS, REDDIT_BASE_URL, REDDIT_SHORT_URL, RESPONSE_HEADERS } from '../constants';
-import { httpEquiv } from '../html';
 import ResponseError from '../response_error';
 import { postToHtml } from '../reddit/compile';
 import { parseRedditPost } from '../reddit/parse';
@@ -30,8 +29,6 @@ export async function handlePost(request: IRequest, short: boolean, resolver: (i
     try {
         const post = await resolver(id, name, slug, ref);
         const html = await postToHtml(post);
-
-        html.querySelector('head')?.appendChild(httpEquiv(originalLink));
 
         return new Response(html.toString(), {
             headers,
