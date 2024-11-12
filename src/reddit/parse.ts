@@ -1,10 +1,12 @@
-import { isNonNullish } from 'remeda';
+import { isDefined, isNonNullish } from 'remeda';
 import { Image, RedditListingData, RedditPost } from './types';
 
 export function parseRedditPost(metadata: RedditListingData): RedditPost {
+    const crosspost = metadata.crosspost_parent_list?.length ? parseRedditPost(metadata.crosspost_parent_list[0]) : undefined;
+
     let resolution: undefined | { width: number, height: number } = undefined;
 
-    let post_hint = metadata.post_hint;
+    let post_hint = metadata.post_hint ?? 'unknown';
     let video_url = metadata.secure_media?.reddit_video?.fallback_url;
     let has_audio = true;
 
@@ -13,6 +15,11 @@ export function parseRedditPost(metadata: RedditListingData): RedditPost {
         video_url = metadata.media.reddit_video.fallback_url;
         has_audio = metadata.media.reddit_video.has_audio;
         post_hint = 'hosted:video';
+    } else if (crosspost) {
+        video_url = crosspost.video_url;
+        resolution = crosspost.resolution;
+        post_hint = crosspost.post_hint;
+        has_audio = crosspost.video_has_audio === true;
     } else if (metadata?.preview?.images?.length) {
         if (metadata.preview.images[0].source) {
             resolution = metadata.preview.images[0].source;
@@ -45,7 +52,11 @@ export function parseRedditPost(metadata: RedditListingData): RedditPost {
                 url: values.s.u,
             });
         }
+    } else if (isDefined(crosspost?.media_metadata)) {
+        media_metadata.push(...crosspost.media_metadata);
     }
+
+    const preview_image_url = firstNotEmpty(metadata.preview?.images?.[0].source?.url, metadata.thumbnail, crosspost?.preview_image_url);
 
     return {
         subreddit: metadata.subreddit,
@@ -55,7 +66,7 @@ export function parseRedditPost(metadata: RedditListingData): RedditPost {
         permalink: metadata.permalink,
         description: getDescription(metadata),
         is_reddit_media: metadata.is_reddit_media_domain,
-        preview_image_url: metadata.preview?.images?.[0].source?.url ?? metadata.thumbnail,
+        preview_image_url,
         resolution: resolution ? { width: resolution.width, height: resolution.height } : undefined,
         video_url: video_url,
         video_has_audio: has_audio,
@@ -74,4 +85,14 @@ function getDescription(metadata: RedditListingData): string {
         text = text?.replace(/^\s*\[View Poll\]\([^)]+\)/gi, '');
     }
     return text?.replace(/^&amp;#x200B;/, '')?.trim() ?? '';
+}
+
+function firstNotEmpty(...strings: (string | undefined)[]) {
+    for (const s of strings) {
+        if (isNonNullish(s) && s.trim().length > 0) {
+            return s;
+        }
+    }
+
+    return undefined;
 }

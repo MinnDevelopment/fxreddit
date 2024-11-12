@@ -6,7 +6,7 @@ export interface RedditListingData {
     author: string;
     original_author?: string;
     is_comment?: boolean;
-    post_hint: string; // 'image' | 'hosted:video'
+    post_hint?: string; // 'image' | 'hosted:video'
     url: string;
     selftext?: string; // content in posts
     body?: string; // content in comments
@@ -62,7 +62,8 @@ export interface RedditListingData {
             media_id: string
         }]
     };
-    poll_data?: PollData,
+    poll_data?: PollData;
+    crosspost_parent_list?: RedditListingData[];
 }
 
 export interface RedditListingResponse {

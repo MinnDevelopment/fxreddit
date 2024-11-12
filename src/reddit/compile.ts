@@ -7,6 +7,17 @@ import '../html';
 import { get_packaged_video } from '../util';
 import { isNonNullish } from 'remeda';
 
+const imageExtensions = [
+    'png',
+    'jpg',
+    'jpeg',
+    'gif',
+];
+
+function isImageUrl(url: URL) {
+    return imageExtensions.some(extension => url.pathname.endsWith(`.${extension}`));
+}
+
 function getDomainHandler(domain?: string) {
     switch (domain) {
         case 'youtu.be':
@@ -103,7 +114,7 @@ export async function postToHtml(post: RedditPost): Promise<HTMLElement> {
                 head.image(post.preview_image_url, post.resolution?.width, post.resolution?.height);
             } else if (post.url) {
                 const url = new URL(post.url);
-                if (url.pathname.endsWith('.png') || url.pathname.endsWith('.jpg') || url.pathname.endsWith('.gif')) {
+                if (isImageUrl(url)) {
                     head.meta('twitter:card', 'summary_large_image');
                     head.image(post.url);
                 } else if (url.pathname.endsWith('.mp4')) {

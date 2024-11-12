@@ -55,7 +55,6 @@ export function fallbackRedirect(req: IRequest) {
 
 export async function get_packaged_video(path: string) {
     try {
-        console.log(path);
         const url = new URL(`https://www.reddit.com${path}`);
         const html = await fetch(url, {
             headers: {
