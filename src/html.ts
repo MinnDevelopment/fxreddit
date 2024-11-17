@@ -4,7 +4,7 @@ declare module 'node-html-parser' {
     interface HTMLElement {
         meta(propertyName: string, content?: string): HTMLElement;
 
-        image(url: string, width?: number, height?: number): HTMLElement;
+        image(url: string, width?: number, height?: number, type?: 'large' | 'thumbnail'): HTMLElement;
 
         video(url: string, width?: number, height?: number, type?: string): HTMLElement;
     }
@@ -17,12 +17,15 @@ HTMLElement.prototype.meta = function (propertyName: string, content?: string): 
     return node;
 };
 
-HTMLElement.prototype.image = function (url: string, width?: number, height?: number): HTMLElement {
+HTMLElement.prototype.image = function (url: string, width?: number, height?: number, type?: 'large' | 'thumbnail'): HTMLElement {
     this.meta('twitter:image:src', url);
     this.meta('og:image', url);
     if (width && height) {
         this.meta('og:image:width', width.toString());
         this.meta('og:image:height', height.toString());
+    }
+    if (type === 'large') {
+        this.meta('twitter:card', 'summary_large_image');
     }
     return this;
 };

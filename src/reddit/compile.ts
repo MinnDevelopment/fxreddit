@@ -6,6 +6,7 @@ import { twitterLinkEmbed } from '../embeds/twitter';
 import '../html';
 import { get_packaged_video } from '../util';
 import { isNonNullish } from 'remeda';
+import { externalImageEmbed } from '../embeds/image_host';
 
 const imageExtensions = [
     'png',
@@ -38,6 +39,11 @@ function getDomainHandler(domain?: string) {
                 handler: twitterLinkEmbed,
                 type: 'summary',
             };
+        case 'imgur.com':
+            return {
+                handler: externalImageEmbed,
+                type: 'article',
+            };
         default:
             return null;
     }
@@ -62,8 +68,7 @@ export async function postToHtml(post: RedditPost): Promise<HTMLElement> {
     switch (post.post_hint) {
         case 'image':
             type = 'photo';
-            head.meta('twitter:card', 'summary_large_image');
-            head.image(post.url, post.resolution?.width, post.resolution?.height);
+            head.image(post.url, post.resolution?.width, post.resolution?.height, 'large');
             break;
         // case 'rich:video':
         case 'hosted:video': {
@@ -115,8 +120,7 @@ export async function postToHtml(post: RedditPost): Promise<HTMLElement> {
             } else if (post.url) {
                 const url = new URL(post.url);
                 if (isImageUrl(url)) {
-                    head.meta('twitter:card', 'summary_large_image');
-                    head.image(post.url);
+                    head.image(post.url, post.resolution?.width, post.resolution?.height, 'large');
                 } else if (url.pathname.endsWith('.mp4')) {
                     head.video(post.url);
                 }
