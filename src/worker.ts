@@ -7,6 +7,7 @@ import { handleShare } from './endpoints/share';
 import { getVideo } from './endpoints/video';
 import { GITHUB_LINK } from './constants';
 import { fallbackRedirect, getOriginalUrl, redirectPage } from './util';
+import { handleOEmbed } from './reddit/oembed';
 
 const sentry = new Sentry({
     dsn: SENTRY_ENDPOINT,
@@ -35,6 +36,8 @@ router
     .get('/*.jpeg', NOT_FOUND)
     .get('/*.txt', NOT_FOUND)
     .get('/*.xml', NOT_FOUND)
+    // OEmbed encoding endpoint
+    .get('/oembed', handleOEmbed)
     // Links to posts
     .get('/r/:name/comments/:id/:slug?', handleSubredditPost)
     .get('/:id', handleShortLinkPost)

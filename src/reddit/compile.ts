@@ -7,6 +7,7 @@ import '../html';
 import { get_packaged_video } from '../util';
 import { isNonNullish } from 'remeda';
 import { externalImageEmbed } from '../embeds/image_host';
+import { encodeOEmbed } from './oembed';
 
 const imageExtensions = [
     'png',
@@ -52,10 +53,30 @@ function getDomainHandler(domain?: string) {
 export async function postToHtml(post: RedditPost): Promise<HTMLElement> {
     const html = new HTMLElement('html', {});
     const head = html.appendChild(new HTMLElement('head', {}));
+    const originalUrl = `https://www.reddit.com${post.permalink}`;
+    const authorName = `u/${post.author} on r/${post.subreddit}`;
 
-    head.meta('og:title', `r/${post.subreddit}: ${post.title}`);
+    head.meta('og:title', post.title);
     head.meta('twitter:title', post.title);
-    head.meta('og:url', `https://www.reddit.com${post.permalink}`);
+    head.meta('twitter:creator', authorName);
+
+    const oembed = head.appendChild(new HTMLElement('link', {}));
+    oembed.setAttribute('rel', 'alternate');
+    oembed.setAttribute('type', 'application/json+oembed');
+    oembed.setAttribute('title', post.author);
+    oembed.setAttribute('href', encodeOEmbed({
+        type: 'link',
+        author_name: authorName,
+        author_url: originalUrl,
+        provider_name: 'rxddit.com',
+        version: '1.0',
+    }));
+
+    const canonical = head.appendChild(new HTMLElement('link', {}));
+    canonical.setAttribute('rel', 'canonical');
+    canonical.setAttribute('href', originalUrl);
+    head.meta('og:url', originalUrl);
+
     head.meta('og:site_name', 'rxddit.com');
     head.meta('twitter:site', 'rxddit.com');
     head.meta('theme-color', '#ff581a');
