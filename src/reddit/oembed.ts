@@ -12,16 +12,11 @@ interface OEmbed {
 }
 
 function objectToBase64UrlSafe(obj: object) {
-    const encoder = new TextEncoder();
-    const bytes = encoder.encode(JSON.stringify(obj));
-    return Base64.fromUint8Array(bytes, true);
+    return Base64.encode(JSON.stringify(obj), true);
 }
 
 function base64ToObjectUrlSafe(base64: string) {
-    const decoder = new TextDecoder();
-    const bytes = Base64.toUint8Array(base64);
-    const decoded = decoder.decode(bytes);
-    return JSON.parse(decoded);
+    return JSON.parse(Base64.decode(base64));
 }
 
 export function encodeOEmbed(embed: OEmbed) {
