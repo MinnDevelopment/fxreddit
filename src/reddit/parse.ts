@@ -66,6 +66,7 @@ export function parseRedditPost(metadata: RedditListingData): RedditPost {
         permalink: metadata.permalink,
         description: getDescription(metadata),
         is_reddit_media: metadata.is_reddit_media_domain,
+        is_media_only: metadata.media_only === true,
         preview_image_url,
         resolution: resolution ? { width: resolution.width, height: resolution.height } : undefined,
         video_url: video_url,

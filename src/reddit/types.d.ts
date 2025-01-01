@@ -11,6 +11,7 @@ export interface RedditListingData {
     selftext?: string; // content in posts
     body?: string; // content in comments
     is_reddit_media_domain: boolean;
+    media_only?: boolean;
     num_comments?: number; // number of comments
     domain?: string;
     thumbnail?: string;
@@ -86,6 +87,7 @@ export interface RedditPost {
     permalink: string;
     description: string;
     is_reddit_media: boolean;
+    is_media_only: boolean;
     preview_image_url?: string;
     domain?: string;
     resolution?: {

@@ -134,11 +134,11 @@ export async function postToHtml(post: RedditPost): Promise<HTMLElement> {
                     }
                 }
             } else if (post.oembed) {
-                head.image(post.oembed.thumbnail_url);
+                head.image(post.oembed.thumbnail_url, undefined, undefined, post.is_media_only ? 'large' : 'thumbnail');
                 descriptionText += post.oembed.title;
             } else if (post.preview_image_url) {
-                head.image(post.preview_image_url, post.resolution?.width, post.resolution?.height);
-            } else if (post.url) {
+                head.image(post.preview_image_url, post.resolution?.width, post.resolution?.height, post.is_media_only ? 'large' : 'thumbnail');
+            } else if (post.url?.startsWith('https://')) {
                 const url = new URL(post.url);
                 if (isImageUrl(url)) {
                     head.image(post.url, post.resolution?.width, post.resolution?.height, 'large');
