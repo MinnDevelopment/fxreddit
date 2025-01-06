@@ -14,7 +14,7 @@
   "dependencies": {
     "@borderless/worker-sentry": "^2.0.0",
     "js-base64": "^3.7.7",
-    "node-html-parser": "^6.1.13",
+    "node-html-parser": "^7.0.1",
     "remeda": "^2.19.0"
   },
   "devDependencies": {
