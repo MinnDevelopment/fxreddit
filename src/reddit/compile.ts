@@ -41,6 +41,7 @@ function getDomainHandler(domain?: string) {
                 type: 'summary',
             };
         case 'imgur.com':
+        case 'i.imgur.com':
             return {
                 handler: externalImageEmbed,
                 type: 'article',
