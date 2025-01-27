@@ -25,6 +25,6 @@
     "eslint": "^8.57.1",
     "itty-router": "^4.2.2",
     "typescript": "^5.7.2",
-    "wrangler": "^3.99.0"
+    "wrangler": "^3.105.0"
   }
 }
