@@ -57,17 +57,17 @@ export async function postToHtml(post: RedditPost): Promise<HTMLElement> {
     const originalUrl = `https://www.reddit.com${post.permalink}`;
     const authorName = `u/${post.author} on r/${post.subreddit}`;
 
-    head.meta('og:title', post.title);
-    head.meta('twitter:title', post.title);
-    head.meta('twitter:creator', authorName);
+    head.meta('og:title', authorName);
+    head.meta('twitter:title', authorName);
+    head.meta('twitter:creator', post.title);
 
     const oembed = head.appendChild(new HTMLElement('link', {}));
     oembed.setAttribute('rel', 'alternate');
     oembed.setAttribute('type', 'application/json+oembed');
-    oembed.setAttribute('title', post.author);
+    oembed.setAttribute('title', authorName);
     oembed.setAttribute('href', encodeOEmbed({
         type: 'link',
-        author_name: authorName,
+        author_name: post.title,
         author_url: originalUrl,
         provider_name: 'rxddit.com',
         version: '1.0',
