@@ -30,6 +30,7 @@ function getDomainHandler(domain?: string) {
                 type: 'video.other',
             };
         case 'clips.twitch.tv':
+        case 'twitch.tv':
             return {
                 handler: twitchClipEmbed,
                 type: 'video.other',
