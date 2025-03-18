@@ -25,36 +25,35 @@ const TWITCH_ANCESTORS = [
 /** Converts the twitch clip link to a video embed url */
 export async function twitchClipEmbed(post: RedditPost, link: string, head: HTMLElement) {
     const url: URL = new URL(link);
-    let slug: string;
-
+    
     // Handle different URL formats
-    // https://www.twitch.tv/varidetta/clip/xx123 need to convert to 
-    // https://clips.twitch.tv/embed?clip=xx123 for embedding
-    if (url.hostname === 'clips.twitch.tv') {
-        slug = url.searchParams.get('clip') || '';
-    } else {
-        const pathParts = url.pathname.split('/');
+    const SLUG_EXTRACTOR: Record<string, (url: URL) => string | null> = {
+        'www.twitch.tv': (url: URL) => {
+            // The slug is always the part after 'clip/' in the path
+            const pathParts = url.pathname.split('/');
+            const clipIndex = pathParts.indexOf('clip');
+            return clipIndex !== -1 && clipIndex + 1 < pathParts.length 
+                ? pathParts[clipIndex + 1] 
+                : url.pathname.substring(1);
+        }, // https://www.twitch.tv/varidetta/clip/xx123
+        'clips.twitch.tv': (url: URL) => url.pathname.substring(1), // https://clips.twitch.tv/clip=xx123
+    };
 
-        // The slug is always the part after 'clip/' in the path
-        const clipIndex = pathParts.indexOf('clip');
-        if (clipIndex !== -1 && clipIndex + 1 < pathParts.length) {
-            slug = pathParts[clipIndex + 1];
-        } else {
-            // Fallback to the old method if the path structure is different
-            slug = url.pathname.substring(1);
+    const slug = SLUG_EXTRACTOR[url.hostname]?.(url) ?? null;
+    
+    if (slug) {
+        const embedUrl = new URL('https://clips.twitch.tv/embed');
+        embedUrl.searchParams.set('clip', slug);
+
+        // This is required so the csp allows us to embed the video
+        // idk what twitch was thinking on this one my dudes
+        for (const parent of TWITCH_ANCESTORS) {
+            embedUrl.searchParams.append('parent', parent);
         }
+
+        head.video(embedUrl.toString(), post.oembed?.width, post.oembed?.height, 'text/html');
     }
-
-    const embedUrl = new URL('https://clips.twitch.tv/embed');
-    embedUrl.searchParams.set('clip', slug);
-
-    // This is required so the csp allows us to embed the video
-    // idk what twitch was thinking on this one my dudes
-    for (const parent of TWITCH_ANCESTORS) {
-        embedUrl.searchParams.append('parent', parent);
-    }
-
-    head.video(embedUrl.toString(), post.oembed?.width, post.oembed?.height, 'text/html');
+    
 
     if (post.oembed?.thumbnail_url) {
         head.image(post.oembed.thumbnail_url, post.oembed?.thumbnail_width, post.oembed?.thumbnail_height);
