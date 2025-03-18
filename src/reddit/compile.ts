@@ -6,7 +6,7 @@ import { twitterLinkEmbed } from '../embeds/twitter';
 import '../html';
 import { get_packaged_video } from '../util';
 import { isNonNullish } from 'remeda';
-import { externalImageEmbed } from '../embeds/image_host';
+import { externalImgurEmbed } from '../embeds/imgur';
 import { encodeOEmbed } from './oembed';
 
 const imageExtensions = [
@@ -43,8 +43,8 @@ function getDomainHandler(domain?: string) {
         case 'imgur.com':
         case 'i.imgur.com':
             return {
-                handler: externalImageEmbed,
-                type: 'article',
+                handler: externalImgurEmbed,
+                type: 'video.other',
             };
         default:
             return null;
