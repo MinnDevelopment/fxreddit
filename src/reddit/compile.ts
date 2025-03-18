@@ -8,6 +8,7 @@ import { get_packaged_video } from '../util';
 import { isNonNullish } from 'remeda';
 import { externalImgurEmbed } from '../embeds/imgur';
 import { encodeOEmbed } from './oembed';
+import { externalRedgifEmbed } from '../embeds/redgif';
 
 const imageExtensions = [
     'png',
@@ -44,6 +45,12 @@ function getDomainHandler(domain?: string) {
         case 'i.imgur.com':
             return {
                 handler: externalImgurEmbed,
+                type: 'video.other',
+            };
+        case 'redgifs.com':
+        case 'v3.redgifs.com':
+            return {
+                handler: externalRedgifEmbed,
                 type: 'video.other',
             };
         default:
