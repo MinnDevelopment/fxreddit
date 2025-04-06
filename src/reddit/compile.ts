@@ -20,7 +20,7 @@ function isImageUrl(url: URL) {
     return imageExtensions.some(extension => url.pathname.endsWith(`.${extension}`));
 }
 
-function getDomainHandler(domain?: string) {
+function getDomainHandler(domain?: string, url?: string) {
     switch (domain) {
         case 'youtu.be':
         case 'www.youtube.com':
@@ -29,7 +29,12 @@ function getDomainHandler(domain?: string) {
                 handler: youtubeEmbed,
                 type: 'video.other',
             };
+        case 'twitch.tv':
+        case 'www.twitch.tv':
         case 'clips.twitch.tv':
+            if (!url?.includes('clip')) {
+                return null;
+            }
             return {
                 handler: twitchClipEmbed,
                 type: 'video.other',
@@ -110,7 +115,7 @@ export async function postToHtml(post: RedditPost): Promise<HTMLElement> {
         }
         case 'link':
         default: {
-            const domainHandler = getDomainHandler(post.domain);
+            const domainHandler = getDomainHandler(post.domain, post.url);
             if (domainHandler) {
                 type = domainHandler.type;
                 await domainHandler.handler(post, post.url, head);

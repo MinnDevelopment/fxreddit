@@ -1,6 +1,7 @@
 import { RedditPost } from '../reddit/types';
 import { HTMLElement } from 'node-html-parser';
 import '../html';
+import { isString } from 'remeda';
 
 const TWITCH_ANCESTORS = [
     'twitter.com',
@@ -22,20 +23,43 @@ const TWITCH_ANCESTORS = [
     'vk.com',
 ];
 
+type ExtractorFunction = (url: URL) => string | null | undefined;
+
+const SLUG_EXTRACTOR: Record<string, ExtractorFunction | undefined> = {
+    // https://www.twitch.tv/username/clip/abcd1234
+    'www.twitch.tv': (url: URL) => {
+        // The slug is always the part after 'clip/' in the path
+        const pathParts = url.pathname.split('/');
+        const clipIndex = pathParts.indexOf('clip');
+        return clipIndex >= 0 && clipIndex + 1 < pathParts.length
+            ? pathParts[clipIndex + 1]
+            : url.pathname.substring(1);
+    },
+    // https://clips.twitch.tv/abcd1234
+    'clips.twitch.tv': (url: URL) => url.pathname.substring(1),
+};
+
 /** Converts the twitch clip link to a video embed url */
 export async function twitchClipEmbed(post: RedditPost, link: string, head: HTMLElement) {
     const url: URL = new URL(link);
-    const slug = url.pathname.substring(1);
-    url.pathname = '/embed';
-    url.searchParams.set('clip', slug);
+
+    const extractor = SLUG_EXTRACTOR[url.hostname];
+    const slug = extractor?.(url);
+
+    if (!isString(slug)) {
+        return;
+    }
+
+    const embeddingUrl = new URL('https://clips.twitch.tv/embed');
+    embeddingUrl.searchParams.set('clip', slug);
 
     // This is required so the csp allows us to embed the video
     // idk what twitch was thinking on this one my dudes
     for (const parent of TWITCH_ANCESTORS) {
-        url.searchParams.append('parent', parent);
+        embeddingUrl.searchParams.append('parent', parent);
     }
 
-    head.video(url.toString(), post.oembed?.width, post.oembed?.height, 'text/html');
+    head.video(embeddingUrl.toString(), post.oembed?.width, post.oembed?.height, 'text/html');
 
     if (post.oembed?.thumbnail_url) {
         head.image(post.oembed.thumbnail_url, post.oembed?.thumbnail_width, post.oembed?.thumbnail_height);
