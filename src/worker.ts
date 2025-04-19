@@ -41,6 +41,7 @@ router
     // Links to posts
     .get('/r/:name/comments/:id/:slug?', handleSubredditPost)
     .get('/:id', handleShortLinkPost)
+    .get('/gallery/:id', handleShortLinkPost)
     .get('/user/:name/comments/:id/:slug?', handleProfilePost)
     .get('/u/:name/comments/:id/:slug?', handleProfilePost)
     // Direct links to comments
