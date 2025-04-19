@@ -129,3 +129,4 @@ async function get_short_url_post(id: string) {
 export const handleSubredditPost = (req: IRequest) => handlePost(req, false, get_subreddit_post);
 export const handleProfilePost = (req: IRequest) => handlePost(req, false, get_profile_post);
 export const handleShortLinkPost = (req: IRequest) => handlePost(req, true, get_short_url_post);
+export const handleGalleryLinkPost = (req: IRequest) => handlePost(req, false, get_short_url_post);

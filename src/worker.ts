@@ -2,7 +2,7 @@ import { Router, html as HtmlResponse } from 'itty-router';
 import { Sentry } from '@borderless/worker-sentry';
 import { HTMLElement } from 'node-html-parser';
 import { httpEquiv } from './html';
-import { handleProfilePost, handleShortLinkPost, handleSubredditPost } from './endpoints/post';
+import { handleGalleryLinkPost, handleProfilePost, handleShortLinkPost, handleSubredditPost } from './endpoints/post';
 import { handleShare } from './endpoints/share';
 import { getVideo } from './endpoints/video';
 import { GITHUB_LINK } from './constants';
@@ -41,7 +41,7 @@ router
     // Links to posts
     .get('/r/:name/comments/:id/:slug?', handleSubredditPost)
     .get('/:id', handleShortLinkPost)
-    .get('/gallery/:id', handleShortLinkPost)
+    .get('/gallery/:id', handleGalleryLinkPost)
     .get('/user/:name/comments/:id/:slug?', handleProfilePost)
     .get('/u/:name/comments/:id/:slug?', handleProfilePost)
     // Direct links to comments
