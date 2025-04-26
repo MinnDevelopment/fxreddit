@@ -82,15 +82,21 @@ addEventListener('fetch', (event) => {
             }).catch(console.error)
         );
 
-        // Respond to the original request while the error is being logged (above).
         const html = new HTMLElement('html', {});
         const head = html.appendChild(new HTMLElement('head', {}));
         head.appendChild(httpEquiv(getOriginalUrl(event.request.url, false)));
-        head.meta('og:description', `Failed to parse reddit post, please report bug!\n\n${GITHUB_LINK}/issues/new`);
-        head.meta('theme-color', '#e3242b');
         const body = html.appendChild(new HTMLElement('body', {}));
         body.appendChild(new HTMLElement('h1', {}, 'Internal Server Error'));
         body.appendChild(new HTMLElement('p', {}, err.message));
-        return HtmlResponse(html.toString());
+
+        // Respond to the original request while the error is being logged (above).
+        if (Math.random() < 0.1) {
+            // If a post consistently fails to embed, we show an error embed (10% chance of happening, to avoid caching errors)
+            head.meta('og:description', `Failed to parse reddit post, please report bug!\n\n${GITHUB_LINK}/issues/new`);
+            head.meta('theme-color', '#e3242b');
+            return HtmlResponse(html.toString());
+        } else {
+            return HtmlResponse(html.toString(), { status: 500 });
+        }
     }));
 });
