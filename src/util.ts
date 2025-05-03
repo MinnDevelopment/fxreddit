@@ -34,9 +34,8 @@ export function getOriginalUrl(url: string, short: boolean) {
 }
 
 export function isBot({ headers }: IRequest): boolean {
-    const userAgent = headers.get('User-Agent')?.toLowerCase();
-    return userAgent?.includes('bot') === true
-        || userAgent?.includes('SteamChatURLLookup'.toLowerCase()) === true;
+    const userAgent = headers.get('User-Agent')?.toLowerCase() ?? '';
+    return userAgent.includes('bot') || userAgent.includes('SteamChatURLLookup'.toLowerCase());
 }
 
 
