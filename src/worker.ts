@@ -22,6 +22,8 @@ const ROBOTS_TXT = () => new Response('User-agent: *\nDisallow: /', { headers: {
 const SECURITY_TXT = () => new Response('Contact: https://github.com/MinnDevelopment/fxreddit/issues/new', { headers: { 'Content-Type': 'text/plain' } });
 const NOT_FOUND = () => new Response('Not Found', { status: 404 });
 
+const handleHead = () => new Response(null, { status: 200, headers: { 'Content-Type': 'text/html' } });
+
 router
     .get('/', () => HtmlResponse(redirectPage(GITHUB_LINK).toString(), { status: 302, headers: { Location: GITHUB_LINK } }))
     // Block all robots / crawlers
@@ -57,6 +59,8 @@ router
     .get('/v/:id', getVideo)
     .get('/v/user/:name/comments/:id/:slug?', getVideo)
     .get('/v/u/:name/comments/:id/:slug?', getVideo)
+    // Steam makes a HEAD request to check the content type first
+    .head('*', handleHead)
     // On missing routes we simply redirect
     .all('*', fallbackRedirect);
 
