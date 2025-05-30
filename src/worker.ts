@@ -2,7 +2,7 @@ import { Router, html as HtmlResponse } from 'itty-router';
 import { Sentry } from '@borderless/worker-sentry';
 import { HTMLElement } from 'node-html-parser';
 import { httpEquiv } from './html';
-import { handleGalleryLinkPost, handleProfilePost, handleShortLinkPost, handleSubredditPost } from './endpoints/post';
+import { handleGalleryLinkPost, handleProfilePost, handleShortLinkPost, handleSubredditPost, handleUntypedCommentsLink } from './endpoints/post';
 import { handleShare } from './endpoints/share';
 import { getVideo } from './endpoints/video';
 import { GITHUB_LINK } from './constants';
@@ -59,6 +59,10 @@ router
     .get('/v/:id', getVideo)
     .get('/v/user/:name/comments/:id/:slug?', getVideo)
     .get('/v/u/:name/comments/:id/:slug?', getVideo)
+    // Untyped links
+    .get('/comments/:id/comment/:ref', handleUntypedCommentsLink)
+    .get('/comments/:id/:slug/:ref', handleUntypedCommentsLink)
+    .get('/comments/:id/:slug?', handleUntypedCommentsLink)
     // Steam makes a HEAD request to check the content type first
     .head('*', handleHead)
     // On missing routes we simply redirect
