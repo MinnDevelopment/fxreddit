@@ -96,14 +96,22 @@ async function get_post(url: string, commentRef?: string) {
         });
 }
 
-function get_post_url(type: string, id: string, subreddit?: string, slug?: string, commentRef?: string) {
+function get_post_url(type: string | undefined, id: string, subreddit?: string, slug?: string, commentRef?: string) {
     let url = REDDIT_BASE_URL;
-    if (subreddit && slug && commentRef) {
-        url += `/${type}/${subreddit}/comments/${id}/${slug}/${cleanSpoiler(commentRef)}.json`;
-    } else if (subreddit && slug) {
-        url += `/${type}/${subreddit}/comments/${id}/${cleanSpoiler(slug)}.json`;
-    } else if (subreddit) {
-        url += `/${type}/${subreddit}/comments/${cleanSpoiler(id)}.json`;
+    if (type) {
+        url += `/${type}`;
+        if (subreddit) {
+            url += `/${subreddit}`;
+        }
+    }
+
+
+    if (slug && commentRef) {
+        url += `/comments/${id}/${slug}/${cleanSpoiler(commentRef)}.json`;
+    } else if (slug) {
+        url += `/comments/${id}/${cleanSpoiler(slug)}.json`;
+    } else if (commentRef) {
+        url += `/comments/${id}/comment/${cleanSpoiler(commentRef)}.json`;
     } else {
         url += `/${cleanSpoiler(id)}.json`;
     }
@@ -126,7 +134,13 @@ async function get_short_url_post(id: string) {
     return await get_post(`${response.url}.json`);
 }
 
+async function get_untyped_post(id: string, subreddit?: string, slug?: string, commentRef?: string) {
+    const url = get_post_url(undefined, id, subreddit, slug, commentRef);
+    return await get_post(url, commentRef);
+}
+
 export const handleSubredditPost = (req: IRequest) => handlePost(req, false, get_subreddit_post);
 export const handleProfilePost = (req: IRequest) => handlePost(req, false, get_profile_post);
 export const handleShortLinkPost = (req: IRequest) => handlePost(req, true, get_short_url_post);
 export const handleGalleryLinkPost = (req: IRequest) => handlePost(req, false, get_short_url_post);
+export const handleUntypedCommentsLink = (req: IRequest) => handlePost(req, false, get_untyped_post);
