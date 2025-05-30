@@ -61,7 +61,7 @@ router
     .get('/v/u/:name/comments/:id/:slug?', getVideo)
     // Untyped links
     .get('/comments/:id/comment/:ref', handleUntypedCommentsLink)
-    .get('/comments/:id/:slug/comment/:ref', handleUntypedCommentsLink)
+    .get('/comments/:id/:slug/:ref', handleUntypedCommentsLink)
     .get('/comments/:id/:slug?', handleUntypedCommentsLink)
     // Steam makes a HEAD request to check the content type first
     .head('*', handleHead)
