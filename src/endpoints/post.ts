@@ -72,28 +72,29 @@ function mapTyping(obj: unknown) {
 }
 
 async function get_post(url: string, commentRef?: string) {
-    return await fetch(url, { headers: FETCH_HEADERS, ...CACHE_CONFIG })
-        .then((r) => r.ok ? r.json() : Promise.reject(new ResponseError(r.status, r.statusText)))
-        .then(mapTyping)
-        .then(result => {
-            if (isNullish(result?.data)) {
-                throw new ResponseError(404, 'Not Found');
-            }
+    const response = await fetch(url, { headers: FETCH_HEADERS, ...CACHE_CONFIG });
+    if (!response.ok) {
+        throw new ResponseError(response.status, response.statusText);
+    }
 
-            const { data, list } = result;
-            const post = parseRedditPost(data);
-            if (commentRef) {
-                for (const listing of list) {
-                    const comment = findComment(listing.data.children, commentRef);
-                    if (comment) {
-                        post.comment = parseRedditPost(comment);
-                        break;
-                    }
-                }
-            }
+    const result = mapTyping(await response.json());
+    if (isNullish(result?.data)) {
+        throw new ResponseError(404, 'Not Found');
+    }
 
-            return post;
-        });
+    const { data, list } = result;
+    const post = parseRedditPost(data);
+    if (commentRef) {
+        for (const listing of list) {
+            const comment = findComment(listing.data.children, commentRef);
+            if (comment) {
+                post.comment = parseRedditPost(comment);
+                break;
+            }
+        }
+    }
+
+    return post;
 }
 
 function get_post_url(type: string | undefined, id: string, subreddit?: string, slug?: string, commentRef?: string) {
