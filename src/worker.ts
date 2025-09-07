@@ -8,6 +8,7 @@ import { getVideo } from './endpoints/video';
 import { GITHUB_LINK } from './constants';
 import { fallbackRedirect, getOriginalUrl, redirectPage } from './util';
 import { handleOEmbed } from './reddit/oembed';
+import ResponseError from './response_error';
 
 const sentry = new Sentry({
     dsn: SENTRY_ENDPOINT,
@@ -62,6 +63,13 @@ router
 
 addEventListener('fetch', (event) => {
     event.respondWith(router.handle(event.request).catch((err) => {
+        if (err instanceof ResponseError) {
+            if (err.status === 403) {
+                console.log('Ignoring 403 error from reddit, likely NSFW post.');
+                return;
+            }
+        }
+
         // Extend the event lifetime until the response from Sentry has resolved.
         // Docs: https://developers.cloudflare.com/workers/runtime-apis/fetch-event#methods
         console.error(err);
