@@ -76,6 +76,10 @@ addEventListener('fetch', (event) => {
                 console.log('Ignoring 403 error from reddit, likely NSFW post.');
                 return;
             }
+            if (err.status === 429) {
+                console.log('Ignoring rate-limit error.');
+                return;
+            }
         }
 
         // Extend the event lifetime until the response from Sentry has resolved.
