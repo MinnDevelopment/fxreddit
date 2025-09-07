@@ -35,7 +35,7 @@ export function parseRedditPost(metadata: RedditListingData): RedditPost {
     if (metadata.media_metadata && metadata.gallery_data?.items) {
         for (const { media_id, caption } of metadata.gallery_data.items) {
             const value = metadata.media_metadata[media_id];
-            if (!value.s) continue;
+            if (!value?.s) continue;
             media_metadata.push({
                 width: value.s.x,
                 height: value.s.y,
@@ -45,7 +45,7 @@ export function parseRedditPost(metadata: RedditListingData): RedditPost {
         }
     } else if (metadata.media_metadata) {
         for (const values of Object.values(metadata.media_metadata)) {
-            if (!values.s) continue;
+            if (!values?.s) continue;
             media_metadata.push({
                 width: values.s.x,
                 height: values.s.y,

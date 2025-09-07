@@ -56,7 +56,7 @@ export interface RedditListingData {
             x: number; // width
             u: string;
         };
-    }>;
+    } | undefined>;
     gallery_data?: {
         items: [{
             caption?: string,
