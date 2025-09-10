@@ -80,6 +80,10 @@ addEventListener('fetch', (event) => {
                 console.log('Ignoring rate-limit error.');
                 return;
             }
+            if (err.status >= 500) {
+                console.log('Reddit server-side error. Ignoring. Receive status:', err.status, err.message);
+                return;
+            }
         }
 
         // Extend the event lifetime until the response from Sentry has resolved.
