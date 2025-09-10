@@ -58,6 +58,7 @@ export async function get_packaged_video(path: string) {
     try {
         const url = new URL(`https://www.reddit.com${path}`);
         const html = await fetch(url, {
+            signal: AbortSignal.timeout(1000),
             headers: {
                 'User-Agent': USER_AGENT,
             },

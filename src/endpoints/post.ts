@@ -72,7 +72,10 @@ function mapTyping(obj: unknown) {
 }
 
 async function get_post(url: string, commentRef?: string) {
-    const response = await fetch(url, { headers: FETCH_HEADERS, ...CACHE_CONFIG });
+    const response = await fetch(url, {
+        signal: AbortSignal.timeout(2000),
+        headers: FETCH_HEADERS, ...CACHE_CONFIG
+    });
     if (!response.ok) {
         throw new ResponseError(response.status, response.statusText);
     }

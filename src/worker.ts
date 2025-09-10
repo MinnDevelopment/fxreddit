@@ -74,16 +74,18 @@ addEventListener('fetch', (event) => {
         if (err instanceof ResponseError) {
             if (err.status === 403) {
                 console.log('Ignoring 403 error from reddit, likely NSFW post.');
-                return;
+                return new Response('Forbidden.', { status: err.status });
             }
             if (err.status === 429) {
                 console.log('Ignoring rate-limit error.');
-                return;
+                return new Response('Rate Limited.', { status: err.status });
             }
             if (err.status >= 500) {
                 console.log('Reddit server-side error. Ignoring. Receive status:', err.status, err.message);
-                return;
+                return new Response('Reddit server side error.', { status: err.status });
             }
+        } else if (err instanceof DOMException && err.name === 'TimeoutError') {
+            return new Response('Reddit Timeout.', { status: 502, statusText: 'Gateway Timeout' });
         }
 
         // Extend the event lifetime until the response from Sentry has resolved.
