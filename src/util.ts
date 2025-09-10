@@ -54,11 +54,11 @@ export function fallbackRedirect(req: IRequest) {
     });
 }
 
-export async function get_packaged_video(path: string) {
+export async function get_packaged_video(path: string, timeout = 1000) {
     try {
         const url = new URL(`https://www.reddit.com${path}`);
         const html = await fetch(url, {
-            signal: AbortSignal.timeout(1000),
+            signal: AbortSignal.timeout(timeout),
             headers: {
                 'User-Agent': USER_AGENT,
             },

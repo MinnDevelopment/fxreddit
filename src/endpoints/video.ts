@@ -12,7 +12,7 @@ export async function getVideo(request: IRequest) {
     }
 
     const path = url.pathname.substring('/v'.length);
-    const video = await get_packaged_video(path);
+    const video = await get_packaged_video(path, 5000);
     if (video) {
         const videoUrl = video.url;
         const headers = { 'Location': videoUrl, 'content-type': 'text/html' };
