@@ -182,6 +182,10 @@ export async function postToHtml(post: RedditPost): Promise<HTMLElement> {
 }
 
 function compilePollData({ options, total_vote_count }: PollData) {
+    if (options == null) {
+        return '';
+    }
+
     const maxVotes = options.map(({ vote_count }) => vote_count).filter(isNonNullish).reduce((a, b) => Math.max(a, b), 0);
     const answers = options.map(({ text, vote_count }) => {
         const decoration = vote_count === maxVotes ? ' 🥇' : '';

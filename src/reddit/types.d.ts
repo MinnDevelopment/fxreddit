@@ -123,7 +123,7 @@ export interface Image {
 export interface PollData {
     total_vote_count: number;
     voting_end_timestamp: number;
-    options: PollDataOption[];
+    options?: PollDataOption[];
 }
 
 export interface PollDataOption {
