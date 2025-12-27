@@ -13,11 +13,17 @@ export async function youtubeEmbed(post: RedditPost, link: string, head: HTMLEle
         const clipEmbed = html.querySelector('meta[name="twitter:player"]')?.getAttribute('content');
         const thumbnail = html.querySelector('meta[name="twitter:image"]')?.getAttribute('content');
 
+        const resolution = {
+            width: post.oembed?.width ?? 1280,
+            height: post.oembed?.height ?? 720,
+        };
+
         if (thumbnail) {
-            head.image(thumbnail, post.oembed?.width, post.oembed?.height);
+            head.image(thumbnail, resolution.width, resolution.height);
         }
         if (clipEmbed) {
-            head.video(clipEmbed, post.oembed?.width, post.oembed?.height, 'text/html');
+            head.meta('twitter:card', 'player');
+            head.video(clipEmbed, resolution.width, resolution.height, 'text/html');
         }
 
         return;
@@ -34,8 +40,15 @@ export async function youtubeEmbed(post: RedditPost, link: string, head: HTMLEle
     if (id) {
         url.hostname = 'www.youtube.com';
         url.pathname = '/embed/' + id;
+        url.searchParams.delete('v');
 
-        head.video(url.toString(), post.oembed?.width, post.oembed?.height, 'text/html');
-        head.image(`https://img.youtube.com/vi/${id}/maxresdefault.jpg`, post.oembed?.width, post.oembed?.height);
+        const resolution = {
+            width: post.oembed?.width ?? 1280,
+            height: post.oembed?.height ?? 720,
+        };
+
+        head.meta('twitter:card', 'player');
+        head.video(url.toString(), resolution.width, resolution.height, 'text/html');
+        head.image(`https://img.youtube.com/vi/${id}/maxresdefault.jpg`, resolution.width, resolution.height);
     }
 }

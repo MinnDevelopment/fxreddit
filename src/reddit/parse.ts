@@ -71,7 +71,7 @@ export function parseRedditPost(metadata: RedditListingData): RedditPost {
         resolution: resolution ? { width: resolution.width, height: resolution.height } : undefined,
         video_url: video_url,
         video_has_audio: has_audio,
-        oembed: metadata.media?.oembed,
+        oembed: metadata.secure_media?.oembed ?? metadata.media?.oembed,
         domain: metadata.domain,
         secure_media_embed: metadata.secure_media_embed,
         media_metadata,

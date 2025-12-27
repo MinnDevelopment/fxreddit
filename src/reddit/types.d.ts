@@ -18,33 +18,14 @@ export interface RedditListingData {
     thumbnail_width?: number;
     thumbnail_height?: number;
     replies?: RedditListingResponse;
-    media?: {
-        reddit_video?: {
-            fallback_url: string;
-            height: number;
-            width: number;
-            has_audio: boolean;
-        };
-        oembed?: {
-            thumbnail_url: string;
-            thumbnail_width: number;
-            thumbnail_height: number;
-            width: number;
-            height: number;
-            title: string;
-        };
-    };
+    media?: RedditMedia;
     preview?: {
         images?: {
             source?: { url: string, width: number, height: number };
             resolutions: { url: string, width: number, height: number }[];
         }[]
     };
-    secure_media?: {
-        reddit_video?: {
-            fallback_url: string;
-        };
-    };
+    secure_media?: RedditMedia;
     secure_media_embed?: {
         media_domain_url: string;
         width: number;
@@ -65,6 +46,26 @@ export interface RedditListingData {
     };
     poll_data?: PollData;
     crosspost_parent_list?: RedditListingData[];
+}
+
+export interface RedditMedia {
+    reddit_video?: {
+        fallback_url: string;
+        height: number;
+        width: number;
+        has_audio: boolean;
+    };
+    oembed?: RedditMediaOEmbed;
+    type?: string; // "youtube"
+}
+
+export interface RedditMediaOEmbed {
+    thumbnail_url: string;
+    thumbnail_width: number;
+    thumbnail_height: number;
+    width: number;
+    height: number;
+    title: string;
 }
 
 export interface RedditListingResponse {

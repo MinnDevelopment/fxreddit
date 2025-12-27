@@ -59,9 +59,17 @@ export async function twitchClipEmbed(post: RedditPost, link: string, head: HTML
         embeddingUrl.searchParams.append('parent', parent);
     }
 
-    head.video(embeddingUrl.toString(), post.oembed?.width, post.oembed?.height, 'text/html');
+    const resolution = {
+        width: post.oembed?.width ?? 1920,
+        height: post.oembed?.height ?? 1080,
+    };
+
+    head.meta('twitter:card', 'player');
+    head.video(embeddingUrl.toString(), resolution.width, resolution.height, 'text/html');
 
     if (post.oembed?.thumbnail_url) {
-        head.image(post.oembed.thumbnail_url, post.oembed?.thumbnail_width, post.oembed?.thumbnail_height);
+        head.image(post.oembed.thumbnail_url, post.oembed?.thumbnail_width ?? resolution.width, post.oembed?.thumbnail_height ?? resolution.height);
+    } else if (post.preview_image_url) {
+        head.image(post.preview_image_url, resolution.width, resolution.height);
     }
 }
