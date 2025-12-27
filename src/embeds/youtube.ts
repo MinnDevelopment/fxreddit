@@ -5,7 +5,7 @@ import '../html';
 
 /** Converts the youtube link to a video embed url */
 export async function youtubeEmbed(post: RedditPost, link: string, head: HTMLElement) {
-    const url: URL = new URL(link);
+    const url: URL = new URL(link.replace('&amp;', '&'));
 
     // Clip links need another request to extract a proper url for embedding
     if (url.pathname.startsWith('/clip/')) {
@@ -38,9 +38,10 @@ export async function youtubeEmbed(post: RedditPost, link: string, head: HTMLEle
     const id = YOUTUBE_EXTRACTOR[url.hostname]?.(url) ?? null;
 
     if (id) {
-        url.hostname = 'www.youtube.com';
-        url.pathname = '/embed/' + id;
-        url.searchParams.delete('v');
+        const embedUrl = new URL(url);
+        embedUrl.hostname = 'www.youtube.com';
+        embedUrl.pathname = '/embed/' + id;
+        embedUrl.searchParams.delete('v');
 
         const resolution = {
             width: post.oembed?.width ?? 1280,
@@ -48,7 +49,7 @@ export async function youtubeEmbed(post: RedditPost, link: string, head: HTMLEle
         };
 
         head.meta('twitter:card', 'player');
-        head.video(url.toString(), resolution.width, resolution.height, 'text/html');
+        head.video(embedUrl.toString(), resolution.width, resolution.height, 'text/html');
         head.image(`https://img.youtube.com/vi/${id}/maxresdefault.jpg`, resolution.width, resolution.height);
     }
 }
