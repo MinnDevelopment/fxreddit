@@ -13,18 +13,22 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@borderless/worker-sentry": "^2.0.0",
+    "@eslint/compat": "^2.0.0",
+    "@eslint/eslintrc": "^3.3.3",
+    "@eslint/js": "^9.39.2",
     "js-base64": "^3.7.7",
-    "node-html-parser": "^6.1.13",
+    "node-html-parser": "^7.0.1",
     "remeda": "^2.20.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250204.0",
-    "@sentry/types": "^7.120.3",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
-    "eslint": "^8.57.1",
+    "@sentry/types": "^10.32.1",
+    "@typescript-eslint/eslint-plugin": "^8.50.1",
+    "@typescript-eslint/parser": "^8.50.1",
+    "eslint": "^9.39.2",
     "itty-router": "^4.2.2",
     "typescript": "^5.7.3",
-    "wrangler": "^3.107.3"
-  }
+    "wrangler": "^4.54.0"
+  },
+  "packageManager": "pnpm@10.5.0+sha512.11106a5916c7406fe4b8cb8e3067974b8728f47308a4f5ac5e850304afa6f57e2847d7950dfe78877d8d36bfb401d381c4215db3a4c3547ffa63c14333a6fa51"
 }

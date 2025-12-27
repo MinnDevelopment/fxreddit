@@ -76,7 +76,7 @@ export async function get_packaged_video(path: string, timeout = 1000) {
         if (videos) {
             return videos[videos.length - 1].source as PackagedVideo;
         }
-    } catch (ignored) {
+    } catch {
         return;
     }
 }
