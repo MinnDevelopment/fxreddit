@@ -19,6 +19,10 @@ function base64ToObjectUrlSafe(base64: string) {
     return JSON.parse(Base64.decode(base64));
 }
 
+function getString(value: unknown): string | undefined {
+    return isString(value) ? value : undefined;
+}
+
 export function encodeOEmbed(embed: OEmbed) {
     const base64 = objectToBase64UrlSafe(embed);
     return `https://${CUSTOM_DOMAIN}/oembed?embed=${base64}`;
@@ -37,11 +41,11 @@ export function handleOEmbed(req: IRequest) {
     const json = base64ToObjectUrlSafe(base64);
 
     const responseBody = {
-        type: json.type,
-        author_name: json.author_name,
-        author_url: json.author_url?.startsWith('https://www.reddit.com/') ? json.author_url : undefined,
-        provider_name: json.provider_name,
-        version: json.version,
+        type: getString(json.type),
+        author_name: getString(json.author_name),
+        author_url: getString(json.author_url)?.startsWith('https://www.reddit.com/') ? getString(json.author_url) : undefined,
+        provider_name: getString(json.provider_name),
+        version: getString(json.version),
     };
 
     return new Response(JSON.stringify(responseBody), {
