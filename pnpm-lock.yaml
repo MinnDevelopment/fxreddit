@@ -46,8 +46,8 @@ importers:
         specifier: ^9.39.2
         version: 9.39.2
       itty-router:
-        specifier: ^4.2.2
-        version: 4.2.2
+        specifier: ^5.0.22
+        version: 5.0.22
       typescript:
         specifier: ^5.7.3
         version: 5.9.3
@@ -803,8 +803,8 @@ packages:
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
 
-  itty-router@4.2.2:
-    resolution: {integrity: sha512-KegPW0l9SNPadProoFT07AB84uOqLUwzlXQ7HsqkS31WUrxkjdhcemRpTDUuetbMJ89uBtWeQSVoiEmUAu31uw==}
+  itty-router@5.0.22:
+    resolution: {integrity: sha512-9hmdGErWdYDOurGYxSbqLhy4EFReIwk71hMZTJ5b+zfa2zjMNV1ftFno2b8VjAQvX615gNB8Qxbl9JMRqHnIVA==}
 
   js-base64@3.7.8:
     resolution: {integrity: sha512-hNngCeKxIUQiEUN3GPJOkz4wF/YvdUdbNL9hsBcMQTkKzboD7T/q3OYOuuPZLUE6dBxSGpwhk5mwuDud7JVAow==}
@@ -1697,7 +1697,7 @@ snapshots:
 
   isexe@2.0.0: {}
 
-  itty-router@4.2.2: {}
+  itty-router@5.0.22: {}
 
   js-base64@3.7.8: {}
 
