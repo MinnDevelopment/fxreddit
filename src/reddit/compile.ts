@@ -6,8 +6,9 @@ import { twitterLinkEmbed } from '../embeds/twitter';
 import '../html';
 import { get_packaged_video } from '../util';
 import { isNonNullish } from 'remeda';
-import { externalImageEmbed } from '../embeds/image_host';
+import { externalImgurEmbed } from '../embeds/imgur';
 import { encodeOEmbed } from './oembed';
+import { externalRedgifEmbed } from '../embeds/redgif';
 
 const imageExtensions = [
     'png',
@@ -48,8 +49,14 @@ function getDomainHandler(domain?: string, url?: string) {
         case 'imgur.com':
         case 'i.imgur.com':
             return {
-                handler: externalImageEmbed,
-                type: 'article',
+                handler: externalImgurEmbed,
+                type: 'video.other',
+            };
+        case 'redgifs.com':
+        case 'v3.redgifs.com':
+            return {
+                handler: externalRedgifEmbed,
+                type: 'video.other',
             };
         default:
             return null;
