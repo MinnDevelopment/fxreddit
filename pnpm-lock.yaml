@@ -34,8 +34,8 @@ importers:
         specifier: ^4.20251229.0
         version: 4.20251229.0
       '@sentry/types':
-        specifier: ^10.32.1
-        version: 10.32.1
+        specifier: ^10.33.0
+        version: 10.33.0
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.50.1
         version: 8.50.1(@typescript-eslint/parser@8.50.1(eslint@9.39.2)(typescript@5.9.3))(eslint@9.39.2)(typescript@5.9.3)
@@ -461,12 +461,12 @@ packages:
   '@poppinss/exception@1.2.3':
     resolution: {integrity: sha512-dCED+QRChTVatE9ibtoaxc+WkdzOSjYTKi/+uacHWIsfodVfpsueo3+DKpgU5Px8qXjgmXkSvhXvSCz3fnP9lw==}
 
-  '@sentry/core@10.32.1':
-    resolution: {integrity: sha512-PH2ldpSJlhqsMj2vCTyU0BI2Fx1oIDhm7Izo5xFALvjVCS0gmlqHt1udu6YlKn8BtpGH6bGzssvv5APrk+OdPQ==}
+  '@sentry/core@10.33.0':
+    resolution: {integrity: sha512-ehH1VSUclIHZKEZVdv+klofsFIh8FFzqA6AAV23RtLepptzA8wqQzUGraEuSN25sYcNmYJ0jti5U0Ys+WZv5Dw==}
     engines: {node: '>=18'}
 
-  '@sentry/types@10.32.1':
-    resolution: {integrity: sha512-aB3L32+s//gSRW6fFOEENUsZPNqHy3dg0lDwnGwh1qs8VctFIToI1SojP1o55m8kO37oFtS3BvfsjM2IAg3ADA==}
+  '@sentry/types@10.33.0':
+    resolution: {integrity: sha512-CQpV+u/pAksvMJra76kRvICgs3bqx60c9zEufr34PslkpmiWvLuavvTxiAJjgLVqEzxmQJ+qOvfmnzKcaaNEsQ==}
     engines: {node: '>=18'}
 
   '@sindresorhus/is@7.2.0':
@@ -1320,11 +1320,11 @@ snapshots:
 
   '@poppinss/exception@1.2.3': {}
 
-  '@sentry/core@10.32.1': {}
+  '@sentry/core@10.33.0': {}
 
-  '@sentry/types@10.32.1':
+  '@sentry/types@10.33.0':
     dependencies:
-      '@sentry/core': 10.32.1
+      '@sentry/core': 10.33.0
 
   '@sindresorhus/is@7.2.0': {}
 
